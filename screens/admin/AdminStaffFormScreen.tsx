@@ -17,6 +17,8 @@ import { ArrowLeft, X } from 'lucide-react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 
+const BACKEND_URL = "https://hotelsakura.in";
+
 export default function AdminStaffFormScreen() {
   const navigation = useNavigation();
   const route = useRoute<any>();
@@ -124,9 +126,11 @@ export default function AdminStaffFormScreen() {
           .eq('id', id);
         if (error) throw error;
       } else {
-        // Create new staff via Edge Function (to create Auth User)
-        const { data, error } = await supabase.functions.invoke('create-staff', {
-          body: {
+        // Create new staff using backend API
+        const response = await fetch(`${BACKEND_URL}/api/admin/create-staff`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             name: formData.name,
             email: formData.email,
             password: formData.password,
@@ -134,12 +138,14 @@ export default function AdminStaffFormScreen() {
             phone: formData.phone,
             hotel_id: formData.hotel_id || null,
             image_url: finalImageUrl,
-            action: 'create'
-          }
+          }),
         });
 
-        if (error) throw error;
-        if (data && data.error) throw new Error(data.error);
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to create staff");
+        }
       }
       
       Alert.alert('Success', 'Staff saved successfully');
@@ -218,7 +224,7 @@ export default function AdminStaffFormScreen() {
             style={styles.input}
             value={formData.email}
             onChangeText={(text) => setFormData({ ...formData, email: text })}
-            placeholder="ajktalent@gmail.com"
+            placeholder="ajktalent@gmail.in"
             keyboardType="email-address"
             autoCapitalize="none"
           />

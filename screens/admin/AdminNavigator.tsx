@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   menuItem: {
-    width: '35%', // Approx 2 columns
+    width: '46%', // Approx 2 columns
     backgroundColor: '#fff',
     borderRadius: 20,
     paddingVertical: 15,
