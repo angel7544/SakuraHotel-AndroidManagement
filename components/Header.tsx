@@ -68,10 +68,14 @@ export default function Header() {
   return (
     <View style={styles.headerContainer}>
       <View style={styles.logoContainer}>
-        <View style={styles.logoIconBg}>
-           <Image source={require('../assets/logo.png')} style={{ width: 32, height: 32 }} resizeMode="contain" />
-        </View>
-        <Text style={styles.logoText}>Sakura Hotel</Text>
+        <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })}>
+          <View style={styles.logoIconBg}>
+             <Image source={require('../assets/logo.png')} style={{ width: 32, height: 32 }} resizeMode="contain" />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })}>
+          <Text style={styles.logoText}>Sakura Hotel</Text>
+        </TouchableOpacity>
       </View>
       
       <View style={styles.actions}>

@@ -168,8 +168,8 @@ export default function AdminDashboardScreen() {
       <View style={styles.menuContainer}>
         <ScrollView 
           horizontal 
-          showsHorizontalScrollIndicator={true}
-          persistentScrollbar={true}
+          showsHorizontalScrollIndicator={false}
+          persistentScrollbar={false}
           contentContainerStyle={styles.menuScrollContent}
         >
           {filteredMenu.map((item, index) => {

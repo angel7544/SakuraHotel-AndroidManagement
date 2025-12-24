@@ -50,7 +50,7 @@ const MENU_ITEMS = [
   { name: 'Offers', icon: Tag, label: 'Offers' },
   { name: 'Testimonial', icon: MessageSquare, label: 'Testimonials' },
   { name: 'Hotel', icon: Building, label: 'Hotels' },
-  { name: 'Enquiry', icon: HelpCircle, label: 'Enquiries' },
+  { name: 'Enquiries', icon: HelpCircle, label: 'Enquiries' },
   { name: 'Staff', icon: Users, label: 'Staff' },
   { name: 'AppInfo', icon: Info, label: 'App Info' },
 ];
@@ -123,7 +123,7 @@ function CustomDrawerContent(props: any) {
 
   return (
     <View style={{ flex: 1, flexDirection: 'column', backgroundColor: colors.background }}>
-      <DrawerContentScrollView {...props}>
+      <DrawerContentScrollView {...props} showsVerticalScrollIndicator={false}>
         <View style={[styles.drawerHeader, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
           <View style={styles.logoContainer}>
             {/* <Text style={styles.logoText}>HotelSakura</Text> */}
@@ -140,7 +140,7 @@ function CustomDrawerContent(props: any) {
               <Image source={{ uri: user.image_url }} style={styles.userImage} />
             ) : (
               <View style={[styles.userImage, styles.userImagePlaceholder, { backgroundColor: colors.border }]}>
-                <UserIcon size={24} color={colors.textMuted} />
+                <UserIcon size={20} color={colors.textMuted} />
               </View>
             )}
             <View style={styles.userDetails}>
@@ -165,7 +165,7 @@ function CustomDrawerContent(props: any) {
                   },
                   pressed && { backgroundColor: colors.background }
                 ]}
-                android_ripple={{ color: colors.primary + '20', borderless: false }}
+                android_ripple={{ color: colors.primary + '10', borderless: true }}
                 onPress={() => {
                   if (item.name === 'AppInfo') {
                     setShowAppInfo(true);
@@ -175,9 +175,9 @@ function CustomDrawerContent(props: any) {
                 }}
               >
                 <Icon 
-                  size={28} 
+                  size={20} 
                   color={isFocused ? colors.primary : colors.textMuted} 
-                  strokeWidth={isFocused ? 2.5 : 2}
+                  strokeWidth={isFocused ? 1.5 : 1}
                 />
                 <Text style={[
                   styles.menuItemText,
@@ -196,7 +196,7 @@ function CustomDrawerContent(props: any) {
         <View style={styles.footerGrid}>
           {isManager && (
             <TouchableOpacity style={styles.gridButton} onPress={navigateToSettings}>
-              <Settings size={24} color={colors.textSecondary} />
+              <Settings size={20} color={colors.textSecondary} />
               <Text style={[styles.gridButtonText, { color: colors.textSecondary }]}>Settings</Text>
             </TouchableOpacity>
           )}
@@ -213,7 +213,7 @@ function CustomDrawerContent(props: any) {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.gridButton} onPress={handleLogout}>
-            <LogOut size={24} color={colors.error} />
+            <LogOut size={20} color={colors.error} />
             <Text style={[styles.gridButtonText, { color: colors.error }]}>Logout</Text>
           </TouchableOpacity>
         </View>
@@ -292,7 +292,7 @@ export default function AdminNavigator() {
               
               <TouchableOpacity 
                 style={styles.socialButton}
-                onPress={() => Linking.openURL('https://github.com/br31tech')}
+                onPress={() => Linking.openURL('https://github.com/angel7544')}
               >
                 <Github size={20} color="#333" />
                 <Text style={styles.socialText}>GitHub</Text>
@@ -319,9 +319,12 @@ export default function AdminNavigator() {
               onPress={() => DeviceEventEmitter.emit('refresh', route.name)}
               style={styles.headerButton}
             >
-              <RefreshCw size={20} color="#374151" />
+              <RefreshCw
+                size={20}
+                color="#374151"
+                onPress={() => DeviceEventEmitter.emit('refresh', route.name)}
+              />
             </TouchableOpacity>
-
             <TouchableOpacity 
               onPress={openWhatsApp}
               style={[styles.supportButton, { marginRight: 0 }]}
@@ -383,7 +386,7 @@ export default function AdminNavigator() {
         }}
       />
       <Drawer.Screen 
-        name="Enquirey" 
+        name="Enquiries" 
         component={AdminReservationsScreen} 
         options={{
           drawerIcon: ({ color, size }) => <HelpCircle size={size} color={color} />
@@ -410,7 +413,7 @@ export default function AdminNavigator() {
 
 const styles = StyleSheet.create({
   drawerHeader: {
-    padding: 20,
+    padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
     marginBottom: 10,
@@ -423,6 +426,7 @@ const styles = StyleSheet.create({
     width: 256,
     height: 100,
     padding: 12,
+    
  
   },
   // logoText: {
@@ -451,11 +455,14 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   userImage: {
     width: 50,
     height: 50,
     borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
   },
   userImagePlaceholder: {
@@ -465,6 +472,7 @@ const styles = StyleSheet.create({
   },
   userDetails: {
     flex: 1,
+    justifyContent: 'center',
   },
   userName: {
     fontSize: 16,
@@ -478,34 +486,34 @@ const styles = StyleSheet.create({
   menuGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 12,
-    gap: 12,
+    padding: 8,
+    gap: 8,
   },
   menuItem: {
-    width: '47%', // Approx 2 columns
+    width: '35%', // Approx 2 columns
     backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingVertical: 20,
+    borderRadius: 20,
+    paddingVertical: 15,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 5,
     borderColor: '#f3f4f6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    // shadowColor: '#000',
+    // shadowOffset: { width: 5, height: 2 },
+    // shadowOpacity: 0.05,
+    // shadowRadius: 4,
+    // elevation: 2,
   },
   menuItemPressed: {
     opacity: 0.9,
     transform: [{ scale: 0.98 }],
   },
   menuItemActive: {
-    borderColor: '#db2777',
+    borderColor: '#db2727ff',
     backgroundColor: '#fdf2f8',
     elevation: 4,
-    shadowColor: '#db2777',
+    shadowColor: '#db3327ff',
     shadowOpacity: 0.1,
   },
   menuItemText: {
@@ -516,7 +524,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   menuItemTextActive: {
-    color: '#db2777',
+    color: '#bd105eff',
     fontWeight: '700',
   },
   headerButton: {
@@ -544,35 +552,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   drawerFooter: {
-    padding: 20,
+    padding: 10,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
     backgroundColor: '#fff',
   },
   footerGrid: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 5,
   },
   gridButton: {
     flex: 1,
     backgroundColor: '#f9fafb',
-    padding: 12,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  gridButtonActive: {
-    backgroundColor: '#db2777',
-    borderColor: '#db2777',
-  },
+  // gridButtonActive: {
+  //   backgroundColor: '#db2777',
+  //   borderColor: '#db2777',
+  // },
   gridButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '800',
     color: '#374151',
-    marginTop: 8,
+    marginTop: 5,
   },
   gridButtonTextActive: {
     color: '#fff',
@@ -584,7 +592,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     justifyContent: 'center',
     backgroundColor: '#fee2e2',
-    borderRadius: 12,
+    borderRadius: 10,
   },
   logoutText: {
     marginLeft: 8,
