@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Hotel Sakura Management",
+    "slug": "sakurahotel",
+    "version": "5.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.br31tech.sakurahotel.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": false,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "415c3c32-6aee-42e3-9234-1da0c844cd00"
+      }
+    },
+    "owner": "angelsingh2199s-organization"
+  }
+}
