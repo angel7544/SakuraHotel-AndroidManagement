@@ -102,7 +102,7 @@ export default function HomeScreen() {
           })}
         >
           <LinearGradient
-            colors={['#445776ff', '#0f172a']}
+            colors={['#6e717625', '#1c263e5c']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.roomGradient}
@@ -560,8 +560,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  roomGradient: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
-  },
+  // roomGradient: {
+  //   ...StyleSheet.absoluteFillObject,
+  //   borderRadius: 20,
+  // },
 });
