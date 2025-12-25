@@ -7,7 +7,8 @@ import {
   Image, 
   TouchableOpacity, 
   ActivityIndicator,
-  Alert 
+  Alert, 
+  DeviceEventEmitter
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit2, Trash2, Tag, Calendar } from 'lucide-react-native';
@@ -18,6 +19,24 @@ export default function AdminOffersScreen() {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<any>();
 
+
+  useEffect(() => {
+    const channel = supabase.channel('admin-offers')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'offers' }, fetchOffers)
+      .subscribe();
+      
+    const refreshSub = DeviceEventEmitter.addListener('refresh', (screenName) => {
+      if (screenName === 'Offers') {
+        fetchOffers();
+      }
+    });
+
+    return () => { 
+      supabase.removeChannel(channel); 
+      refreshSub.remove();
+    };
+  }, );
+  
   useEffect(() => {
     fetchOffers();
 

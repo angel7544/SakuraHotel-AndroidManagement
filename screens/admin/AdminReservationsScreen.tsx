@@ -73,7 +73,7 @@ export default function AdminReservationsScreen() {
       .subscribe();
       
     const refreshSub = DeviceEventEmitter.addListener('refresh', (screenName) => {
-      if (screenName === 'Enquirey') {
+      if (screenName === 'Enquiries') {
         fetchReservations();
       }
     });
@@ -145,7 +145,15 @@ export default function AdminReservationsScreen() {
           style: 'destructive',
           onPress: async () => {
             const { error } = await supabase.from('reservations').delete().eq('id', item.id);
-            if (error) Alert.alert('Error', error.message);
+            if (!error) {
+              // If reservation had a room assigned, mark that room as Available again
+              if (item.room_id) {
+                await supabase.from('rooms').update({ status: 'Available' }).eq('id', item.room_id);
+              }
+              fetchReservations();
+            } else {
+              Alert.alert('Error', error.message);
+            }
           }
         }
       ]
@@ -230,13 +238,57 @@ export default function AdminReservationsScreen() {
           </>
         )}
         {item.status === 'Confirmed' && (
-             <TouchableOpacity style={[styles.actionButton, styles.checkInButton]} onPress={() => updateStatus(item.id, 'Checked In')}>
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.checkInButton]} 
+              onPress={async () => {
+                // Update reservation status to Checked In
+                const { error } = await supabase
+                  .from('reservations')
+                  .update({ status: 'Checked In' })
+                  .eq('id', item.id);
+                
+                if (!error) {
+                  // Mark the assigned room as Booked
+                  if (item.room_id) {
+                    await supabase
+                      .from('rooms')
+                      .update({ status: 'Booked' })
+                      .eq('id', item.room_id);
+                  }
+                  fetchReservations();
+                } else {
+                  Alert.alert('Error', error.message);
+                }
+              }}
+            >
               <CheckCircle size={16} color="#fff" />
               <Text style={styles.actionText}>Check In</Text>
             </TouchableOpacity>
         )}
         {item.status === 'Checked In' && (
-             <TouchableOpacity style={[styles.actionButton, styles.checkOutButton]} onPress={() => updateStatus(item.id, 'Checked Out')}>
+             <TouchableOpacity 
+               style={[styles.actionButton, styles.checkOutButton]} 
+               onPress={async () => {
+                 // Update reservation status to Checked Out
+                 const { error } = await supabase
+                   .from('reservations')
+                   .update({ status: 'Checked Out' })
+                   .eq('id', item.id);
+                 
+                 if (!error) {
+                   // Mark the assigned room as Available
+                   if (item.room_id) {
+                     await supabase
+                       .from('rooms')
+                       .update({ status: 'Available' })
+                       .eq('id', item.room_id);
+                   }
+                   fetchReservations();
+                 } else {
+                   Alert.alert('Error', error.message);
+                 }
+               }}
+             >
               <Clock size={16} color="#fff" />
               <Text style={styles.actionText}>Check Out</Text>
             </TouchableOpacity>

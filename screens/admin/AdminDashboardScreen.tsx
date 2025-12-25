@@ -115,14 +115,14 @@ export default function AdminDashboardScreen() {
   }, [fetchStats]);
 
   const menuItems = [
-    { name: "Reservations", screen: "Enquirey", icon: CalendarCheck, color: "#3b82f6" },
+    { name: "Bookings", screen: "Enquiries", icon: CalendarCheck, color: "#3b82f6" },
     { name: "Rooms", screen: "Rooms", icon: BedDouble, color: "#8b5cf6" },
     { name: "Packages", screen: "Packages", icon: Package, color: "#ec4899" },
     { name: "Services", screen: "Services", icon: ConciergeBell, color: "#f59e0b" },
     // Restricted Items
-    { name: "Hotels", screen: "Hotel", icon: Building2, color: "#6b7280", restricted: true },
-    { name: "Staff", screen: "Staff", icon: Users2, color: "#6b7280", restricted: true },
-    { name: "Settings", screen: "Settings", icon: Settings, color: "#6b7280", restricted: true },
+    { name: "Hotels", screen: "Hotel", icon: Building2, color: "#fac60cff", restricted: true },
+    { name: "Staff", screen: "Staff", icon: Users2, color: "#07dc52ff", restricted: true },
+    { name: "Settings", screen: "Settings", icon: Settings, color: "#ff0000ff", restricted: true },
   ];
 
   const filteredMenu = menuItems.filter(item => {

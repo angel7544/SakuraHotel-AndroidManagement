@@ -50,7 +50,7 @@ const MENU_ITEMS = [
   { name: 'Offers', icon: Tag, label: 'Offers' },
   { name: 'Testimonial', icon: MessageSquare, label: 'Testimonials' },
   { name: 'Hotel', icon: Building, label: 'Hotels' },
-  { name: 'Enquiries', icon: HelpCircle, label: 'Enquiries' },
+  { name: 'Enquiries', icon: HelpCircle, label: 'Bookings' },
   { name: 'Staff', icon: Users, label: 'Staff' },
   { name: 'AppInfo', icon: Info, label: 'App Info' },
 ];
