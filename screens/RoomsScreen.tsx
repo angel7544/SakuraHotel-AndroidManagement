@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, Dimensions, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
@@ -141,6 +141,7 @@ export default function RoomsScreen() {
   const [rooms, setRooms] = useState<RoomItem[]>([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<any>();
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchRooms();
@@ -152,8 +153,13 @@ export default function RoomsScreen() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, fetchRooms)
       .subscribe();
 
+    const interval = setInterval(() => {
+      fetchRooms();
+    }, 5000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, []);
 
@@ -181,6 +187,12 @@ export default function RoomsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchRooms();
+    setRefreshing(false);
   };
 
   const handleBookNow = (room: RoomItem) => {
@@ -287,6 +299,9 @@ export default function RoomsScreen() {
         renderItem={renderRoom}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         ListEmptyComponent={
           <Text style={styles.emptyText}>No rooms available at the moment.</Text>
         }

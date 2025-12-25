@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, ScrollView, TextInput, RefreshControl } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
@@ -28,6 +28,7 @@ export default function CatalogScreen() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState(initialFilter);
   const [searchTerm, setSearchTerm] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (route.params?.filter) {
@@ -43,8 +44,13 @@ export default function CatalogScreen() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, fetchServices)
       .subscribe();
 
+    const interval = setInterval(() => {
+      fetchServices();
+    }, 5000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, []);
 
@@ -62,6 +68,12 @@ export default function CatalogScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchServices();
+    setRefreshing(false);
   };
 
   const filteredItems = items.filter(item => {
@@ -144,6 +156,9 @@ export default function CatalogScreen() {
           renderItem={renderService}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           ListEmptyComponent={<Text style={styles.emptyText}>No services found.</Text>}
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}

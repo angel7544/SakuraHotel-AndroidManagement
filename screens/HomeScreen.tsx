@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Dimensions, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Bed, Utensils, Car, Camera, PartyPopper, ArrowRight, Star, MapPin, Wifi, Tv, Wind, Heart } from 'lucide-react-native';
@@ -32,6 +32,7 @@ export default function HomeScreen() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const [featuredRooms, setFeaturedRooms] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Auto-slide effect
   useEffect(() => {
@@ -57,10 +58,18 @@ export default function HomeScreen() {
           console.log('Realtime update received:', payload);
           fetchFeaturedRooms();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => {
+          fetchFeaturedRooms();
+      })
       .subscribe();
+
+    const interval = setInterval(() => {
+      fetchFeaturedRooms();
+    }, 5000);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, []);
 
@@ -248,6 +257,16 @@ export default function HomeScreen() {
         numColumns={2}
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.columnWrapper}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              await fetchFeaturedRooms();
+              setRefreshing(false);
+            }}
+          />
+        }
         renderItem={({ item }) => {
           const Icon = item.icon;
           return (
