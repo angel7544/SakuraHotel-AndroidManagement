@@ -5,7 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DefaultTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Home, Bed, Package, Grid, Phone, User, MoreHorizontal } from 'lucide-react-native';
+import { Home, Bed, Package, Grid, Phone, User, MoreHorizontal, NewspaperIcon, ChartCandlestickIcon, Bell, BellDot } from 'lucide-react-native';
 
 import HomeScreen from './screens/HomeScreen';
 import RoomsScreen from './screens/RoomsScreen';
@@ -39,6 +39,8 @@ import { ImageBackground } from 'react-native';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import AdminBlogPostScreen from './screens/admin/AdminBlogPostScreen';
 import AdminBlogPostFormScreen from './screens/admin/AdminBlogPostFormScreen';
+import BlogScreen from './screens/BlogScreen';
+import BlogArticleScreen from './screens/BlogArticleScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -92,14 +94,14 @@ function MainTabs() {
         component={CatalogScreen} 
         options={{
           title: 'Services',
-          tabBarIcon: ({ color, size }) => <Grid color={color} size={size} />
+          tabBarIcon: ({ color, size }) => <BellDot color={color} size={size} />
         }}
       />
       <Tab.Screen 
-        name="Contact" 
-        component={ContactScreen} 
+        name="Blogs" 
+        component={BlogScreen} 
         options={{
-          tabBarIcon: ({ color, size }) => <Phone color={color} size={size} />
+          tabBarIcon: ({ color, size }) => <NewspaperIcon color={color} size={size} />
         }}
       />
       <Tab.Screen 
@@ -164,6 +166,7 @@ function AppContent() {
 
           <Stack.Screen name="Contact" component={ContactScreen} />
           {/* Add other detail screens here if needed, e.g. RoomDetails */}
+          <Stack.Screen name="BlogArticle" component={BlogArticleScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <OffersPopup />

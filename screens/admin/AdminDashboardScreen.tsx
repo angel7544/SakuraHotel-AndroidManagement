@@ -23,6 +23,10 @@ import {
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
+const GRID_COLUMNS = 3;
+const GRID_H_PADDING = 12;
+const GRID_GAP = 10;
+const gridItemWidth = Math.floor((width - GRID_H_PADDING * 2 - GRID_GAP * (GRID_COLUMNS - 1)) / GRID_COLUMNS);
 
 export default function AdminDashboardScreen() {
   const navigation = useNavigation<any>();
@@ -166,20 +170,14 @@ export default function AdminDashboardScreen() {
         </View>
       </View>
 
-      {/* Menu Scroll */}
       <View style={styles.menuContainer}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          persistentScrollbar={false}
-          contentContainerStyle={styles.menuScrollContent}
-        >
+        <View style={styles.menuGrid}>
           {filteredMenu.map((item, index) => {
             const Icon = item.icon;
             return (
-              <TouchableOpacity 
-                key={index} 
-                style={styles.menuItem}
+              <TouchableOpacity
+                key={index}
+                style={[styles.menuItem, { width: gridItemWidth }]}
                 onPress={() => navigation.navigate(item.screen)}
               >
                 <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
@@ -189,7 +187,7 @@ export default function AdminDashboardScreen() {
               </TouchableOpacity>
             );
           })}
-        </ScrollView>
+        </View>
       </View>
 
       {/* Recent Bookings */}
@@ -280,9 +278,12 @@ const styles = StyleSheet.create({
   menuContainer: {
     paddingVertical: 12,
   },
-  menuScrollContent: {
+  menuGrid: {
     paddingHorizontal: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
+    justifyContent: 'flex-start',
   },
   menuItem: {
     width: 96,
