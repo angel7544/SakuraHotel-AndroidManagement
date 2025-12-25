@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import {
@@ -70,20 +70,34 @@ export default function MoreScreen() {
     })
   ).current;
 
-  useEffect(() => {
-    // Slide up on mount
-    Animated.parallel([
-      Animated.spring(translateY, {
-        toValue: 0,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  useFocusEffect(
+    useCallback(() => {
+      // Reset values
+      translateY.setValue(SHEET_HEIGHT);
+      opacity.setValue(0);
 
+      // Slide up on focus
+      Animated.parallel([
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      return () => {
+        // Reset on blur to ensure clean state next time
+        translateY.setValue(SHEET_HEIGHT);
+        opacity.setValue(0);
+      };
+    }, [SHEET_HEIGHT])
+  );
+
+  useEffect(() => {
     // Auth listener
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);

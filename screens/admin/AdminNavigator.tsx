@@ -45,6 +45,7 @@ import AdminBlogPostScreen from './AdminBlogPostScreen';
 const Drawer = createDrawerNavigator();
 
 const MENU_ITEMS = [
+  
   { name: 'Dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { name: 'Rooms', icon: Bed, label: 'Rooms' },
   { name: 'Packages', icon: Package, label: 'Packages' },
@@ -55,6 +56,7 @@ const MENU_ITEMS = [
   { name: 'Enquiries', icon: HelpCircle, label: 'Bookings' },
   { name: 'Staff', icon: Users, label: 'Staff' },
   { name: 'Blog', icon: NewspaperIcon, label: 'Blogs' },
+  {name: 'Main', icon: LayoutDashboard, label: 'HomeScreen'},
   { name: 'AppInfo', icon: Info, label: 'App Info' },
 ];
 
