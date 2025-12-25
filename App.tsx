@@ -37,6 +37,8 @@ import AdminOfferFormScreen from './screens/admin/AdminOfferFormScreen';
 import AdminTestimonialFormScreen from './screens/admin/AdminTestimonialFormScreen';
 import { ImageBackground } from 'react-native';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import AdminBlogPostScreen from './screens/admin/AdminBlogPostScreen';
+import AdminBlogPostFormScreen from './screens/admin/AdminBlogPostFormScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -130,7 +132,7 @@ function AppContent() {
       <SafeAreaProvider>
         <NavigationContainer ref={navigationRef} theme={MyTheme}>
         <Stack.Navigator 
-          initialRouteName="Login" 
+          initialRouteName="Main" 
           screenOptions={{ 
             headerShown: false,
             contentStyle: { backgroundColor: 'transparent' }
@@ -148,6 +150,7 @@ function AppContent() {
           <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
           <Stack.Screen name="AdminOffers" component={AdminOffersScreen} />
           <Stack.Screen name="AdminTestimonials" component={AdminTestimonialsScreen} />
+          <Stack.Screen name="AdminBlogPost" component={AdminBlogPostScreen} />
           
           <Stack.Screen name="AdminHotelForm" component={AdminHotelFormScreen} />
           <Stack.Screen name="AdminRoomForm" component={AdminRoomFormScreen} />
@@ -157,6 +160,7 @@ function AppContent() {
           <Stack.Screen name="AdminStaffForm" component={AdminStaffFormScreen} />
           <Stack.Screen name="AdminOfferForm" component={AdminOfferFormScreen} />
           <Stack.Screen name="AdminTestimonialForm" component={AdminTestimonialFormScreen} />
+          <Stack.Screen name="AdminBlogPostForm" component={AdminBlogPostFormScreen} />
 
           <Stack.Screen name="Contact" component={ContactScreen} />
           {/* Add other detail screens here if needed, e.g. RoomDetails */}

@@ -18,7 +18,8 @@ import {
   Bed,
   Users,
   Menu,
-  Smartphone
+  Smartphone,
+  NewspaperIcon
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -119,6 +120,7 @@ export default function AdminDashboardScreen() {
     { name: "Rooms", screen: "Rooms", icon: BedDouble, color: "#8b5cf6" },
     { name: "Packages", screen: "Packages", icon: Package, color: "#ec4899" },
     { name: "Services", screen: "Services", icon: ConciergeBell, color: "#f59e0b" },
+    { name: "Blogs", screen: "Blogs", icon: NewspaperIcon, color: "#007bff" },
     // Restricted Items
     { name: "Hotels", screen: "Hotel", icon: Building2, color: "#fac60cff", restricted: true },
     { name: "Staff", screen: "Staff", icon: Users2, color: "#07dc52ff", restricted: true },
@@ -297,12 +299,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   iconContainer: {
+    columnGap: 50,
     width: 48,
     height: 48,
-    borderRadius: 20,
+    borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 15,
   },
   menuText: {
     fontSize: 14,

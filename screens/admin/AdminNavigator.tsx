@@ -40,6 +40,7 @@ import AdminSettingsScreen from './AdminSettingsScreen';
 import AdminOffersScreen from './AdminOffersScreen';
 import AdminTestimonialsScreen from './AdminTestimonialsScreen';
 import AppInfoPopup from '../../components/AppInfoPopup';
+import AdminBlogPostScreen from './AdminBlogPostScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -381,6 +382,13 @@ export default function AdminNavigator() {
         }}
       />
       <Drawer.Screen 
+        name="Blog" 
+        component={AdminBlogPostScreen} 
+        options={{
+          drawerIcon: ({ color, size }) => <NewspaperIcon size={size} color={color} />
+        }}
+      />
+      <Drawer.Screen 
         name="Hotel" 
         component={AdminHotelsScreen} 
         options={{
@@ -716,4 +724,3 @@ const styles = StyleSheet.create({
 function setIsDarkMode(arg0: boolean) {
   throw new Error('Function not implemented.');
 }
-
