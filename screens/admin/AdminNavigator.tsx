@@ -22,7 +22,8 @@ import {
   Github,
   X,
   InfoIcon,
-  RefreshCw
+  RefreshCw,
+  NewspaperIcon
 } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { signOut } from '../../lib/auth';
@@ -52,6 +53,7 @@ const MENU_ITEMS = [
   { name: 'Hotel', icon: Building, label: 'Hotels' },
   { name: 'Enquiries', icon: HelpCircle, label: 'Bookings' },
   { name: 'Staff', icon: Users, label: 'Staff' },
+  { name: 'Blog', icon: NewspaperIcon, label: 'Blogs' },
   { name: 'AppInfo', icon: Info, label: 'App Info' },
 ];
 
