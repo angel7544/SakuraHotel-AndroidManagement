@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   loginContainer: {
-    padding: 16,
+    padding: 6,
     alignItems: 'center',
   },
   loginIconContainer: {
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fdf2f8',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   loginTitle: {
     fontSize: 14,
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom:10,
+    marginBottom:6,
   },
   gridItem: {
     width: '23%',
@@ -505,13 +505,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 16,
-    paddingTop: 10,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   socialButton: {
-    padding: 4,
+    padding: 2,
     borderRadius: 999,
   },
   footer: { alignItems: 'center', opacity: 0.6 },
