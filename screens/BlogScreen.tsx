@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, Linking, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -26,6 +26,7 @@ export default function BlogScreen() {
   const { colors } = useTheme();
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchBlogs = useCallback(async () => {
     setLoading(true);
@@ -46,8 +47,12 @@ export default function BlogScreen() {
       .channel('client-blogs')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'blogs' }, fetchBlogs)
       .subscribe();
+    const interval = setInterval(() => {
+      fetchBlogs();
+    }, 5000);
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [fetchBlogs]);
 
@@ -127,6 +132,16 @@ export default function BlogScreen() {
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={async () => {
+                setRefreshing(true);
+                await fetchBlogs();
+                setRefreshing(false);
+              }}
+            />
+          }
         />
       )}
     </SafeAreaView>

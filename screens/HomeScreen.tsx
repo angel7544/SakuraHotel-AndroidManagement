@@ -42,7 +42,7 @@ export default function HomeScreen() {
         flatListRef.current?.scrollToIndex({
             index: next,
             animated: true,
-            viewPosition: 2
+            viewPosition: 0
         });
         return next;
       });
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   heroTitle: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: '800',
     color: '#fff',
     textAlign: 'center',
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     color: '#f472b6', // pink-400
   },
   heroSubtitle: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#f3f4f6',
     textAlign: 'center',
     marginBottom: 24,

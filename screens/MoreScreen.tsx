@@ -203,7 +203,7 @@ export default function MoreScreen() {
                 <View style={styles.loginIconContainer}>
                   <LogIn size={18} color="#db2777" />
                 </View>
-                <Text style={styles.loginTitle}>Staff Access</Text>
+                <Text style={styles.loginTitle}>Hotel Management</Text>
                 <Text style={styles.loginSubtitle}>
                   Manage reservations and services
                 </Text>
@@ -505,13 +505,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 16,
-    paddingTop: 12,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   socialButton: {
-    padding: 8,
+    padding: 4,
     borderRadius: 999,
   },
   footer: { alignItems: 'center', opacity: 0.6 },
