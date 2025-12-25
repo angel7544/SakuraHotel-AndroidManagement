@@ -12,10 +12,10 @@ import { LinearGradient } from 'react-native-svg';
 const { width } = Dimensions.get('window');
 
 const gangtokImages = [
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=1000&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop"
+  "https://content.jdmagicbox.com/comp/gangtok/x1/9999p3592.3592.180424151109.i6x1/catalogue/shivam-hotel-gangtok-bazar-gangtok-hotels-dykidairuj.jpg", // Mountains
+  "https://cf.bstatic.com/xdata/images/hotel/max1024x768/383458094.jpg?k=2442ccd245220ac06d25191675daa057bdb0c560933b49bcb9cf7a981835726c&o=", // Sikkim landscape
+  "https://images.trvl-media.com/lodging/112000000/111710000/111702400/111702318/f7b68d4b.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill", // Tea garden type view
+  "https://cf.bstatic.com/xdata/images/hotel/max1024x768/582382824.jpg?k=369e21e051ba1d203227f0d82b386fee3b1b5fa3c885519ed5d7847c78348bdb&o="  // Luxury hotel
 ];
 
 const services = [
@@ -41,11 +41,11 @@ export default function HomeScreen() {
         flatListRef.current?.scrollToIndex({
             index: next,
             animated: true,
-            viewPosition: 0
+            viewPosition: 2
         });
         return next;
       });
-    }, 5000);
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -197,12 +197,12 @@ export default function HomeScreen() {
             >
               <Text style={styles.primaryButtonText}>Explore Rooms</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            {/* <TouchableOpacity 
               style={[styles.button, styles.outlineButton]}
               onPress={() => navigation.navigate('Contact')}
             >
               <Text style={styles.outlineButtonText}>Inquire Now</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </View>
@@ -280,13 +280,13 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   heroContainer: {
-    height: 500,
+    height: 240,
     position: 'relative',
     marginBottom: 24,
   },
   heroSlide: {
     width: width,
-    height: 500,
+    height: 240,
   },
   heroImage: {
     width: '100%',
