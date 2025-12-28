@@ -12,10 +12,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width } = Dimensions.get('window');
 
 const gangtokImages = [
-  "https://content.jdmagicbox.com/comp/gangtok/x1/9999p3592.3592.180424151109.i6x1/catalogue/shivam-hotel-gangtok-bazar-gangtok-hotels-dykidairuj.jpg", // Mountains
-  "https://cf.bstatic.com/xdata/images/hotel/max1024x768/383458094.jpg?k=2442ccd245220ac06d25191675daa057bdb0c560933b49bcb9cf7a981835726c&o=", // Sikkim landscape
-  "https://images.trvl-media.com/lodging/112000000/111710000/111702400/111702318/f7b68d4b.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill", // Tea garden type view
-  "https://cf.bstatic.com/xdata/images/hotel/max1024x768/582382824.jpg?k=369e21e051ba1d203227f0d82b386fee3b1b5fa3c885519ed5d7847c78348bdb&o="  // Luxury hotel
+  require('../assets/slidesho/img1.jpg'),
+  require('../assets/slidesho/img2.jpg'),
+  require('../assets/slidesho/img3.jpg')
 ];
 
 const services = [
@@ -37,13 +36,13 @@ const HomeHero = memo(() => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex(prev => {
-        const next = (prev + 4) % gangtokImages.length;
+        const next = (prev + 1) % gangtokImages.length;
         // Check if ref is current and list has data
         if (flatListRef.current) {
           flatListRef.current.scrollToIndex({
               index: next,
               animated: true,
-              viewPosition: 1 // Align to center
+              viewPosition: 0 // Align to center
           });
         }
         return next;
@@ -60,6 +59,8 @@ const HomeHero = memo(() => {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        initialNumToRender={4}
+        removeClippedSubviews={false}
         keyExtractor={(_, index) => index.toString()}
         getItemLayout={(_, index) => ({
           length: width,
@@ -68,7 +69,7 @@ const HomeHero = memo(() => {
         })}
         renderItem={({ item }) => (
           <View style={styles.heroSlide}>
-            <Image source={{ uri: item }} style={styles.heroImage} />
+            <Image source={item} style={styles.heroImage} />
             <View style={styles.overlay} />
           </View>
         )}
