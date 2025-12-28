@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Dimensions, ScrollView, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useRef, memo } from 'react';
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Dimensions, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Bed, Utensils, Car, Camera, PartyPopper, ArrowRight, Star, MapPin, Wifi, Tv, Wind, Heart } from 'lucide-react-native';
@@ -7,7 +7,7 @@ import Testimonials from '../components/Testimonials';
 import LocationMap from '../components/LocationMap';
 import Header from '../components/Header';
 import { supabase } from '../lib/supabase';
-import { LinearGradient } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -27,28 +27,210 @@ const services = [
   { icon: ArrowRight, title: "Packages", desc: "All-in-one bundles.", link: "Packages", filter: null },
 ];
 
-export default function HomeScreen() {
+// --- Sub-components to prevent re-renders ---
+
+const HomeHero = memo(() => {
   const navigation = useNavigation<any>();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const [featuredRooms, setFeaturedRooms] = useState<any[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // Auto-slide effect
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex(prev => {
-        const next = (prev + 1) % gangtokImages.length;
-        flatListRef.current?.scrollToIndex({
-            index: next,
-            animated: true,
-            viewPosition: 0
-        });
+        const next = (prev + 4) % gangtokImages.length;
+        // Check if ref is current and list has data
+        if (flatListRef.current) {
+          flatListRef.current.scrollToIndex({
+              index: next,
+              animated: true,
+              viewPosition: 1 // Align to center
+          });
+        }
         return next;
       });
-    }, 1000);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  return (
+    <View style={styles.heroContainer}>
+      <FlatList
+        ref={flatListRef}
+        data={gangtokImages}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(_, index) => index.toString()}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+        renderItem={({ item }) => (
+          <View style={styles.heroSlide}>
+            <Image source={{ uri: item }} style={styles.heroImage} />
+            <View style={styles.overlay} />
+          </View>
+        )}
+        onScrollToIndexFailed={info => {
+          const wait = new Promise(resolve => setTimeout(resolve, 500));
+          wait.then(() => {
+            flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
+          });
+        }}
+        onMomentumScrollEnd={(ev) => {
+          const newIndex = Math.floor(ev.nativeEvent.contentOffset.x / width);
+          setCurrentImageIndex(newIndex);
+        }}
+      />
+      <View style={styles.heroContent}>
+        <Text style={styles.heroTitle}>
+          Experience <Text style={styles.highlightText}>Gangtok</Text> Like Never Before
+        </Text>
+        <Text style={styles.heroSubtitle}>
+          Luxury stays in the heart of Sikkim. Discover mountains, culture, and comfort.
+        </Text>
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity 
+            style={[styles.button, styles.primaryButton]}
+            onPress={() => navigation.navigate('Rooms')}
+          >
+            <Text style={styles.primaryButtonText}>Explore Rooms</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+});
+
+const RoomCard = memo(({ item }: { item: any }) => {
+  const navigation = useNavigation<any>();
+  const images = item.images && item.images.length > 0 ? item.images : (item.image_url ? [item.image_url] : []);
+  const mainImage = images[0] || 'https://via.placeholder.com/300x200?text=No+Image';
+
+  return (
+    <TouchableOpacity 
+      style={styles.roomCard}
+      onPress={() => navigation.navigate('Contact', {
+          interest: `${item.type} (Room ${item.room_number})`,
+          type: 'room',
+          details: `Room: ${item.type} #${item.room_number}\nPrice: ${item.price ? `₹${item.price}` : 'On Request'}\nDescription: ${item.description || 'N/A'}`
+      })}
+    >
+      <LinearGradient
+        colors={['#6e7176', '#1c263e']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.roomGradient}
+      >
+      <View style={styles.imageContainer}>
+          <Image source={{ uri: mainImage }} style={styles.roomImage} />
+          <View style={styles.roomRatingBadge}>
+              <Star size={10} color="#fbbf24" fill="#fbbf24" />
+              <Text style={styles.roomRatingText}>4.8/5</Text>
+          </View>
+          <View style={styles.roomHeartBadge}>
+              <Heart size={14} color="#fff" />
+          </View>
+      </View>
+      
+      <View style={styles.roomContent}>
+          <View>
+             <Text style={styles.roomTitle} numberOfLines={1}>Room :- {item.room_number}</Text>
+              <Text style={styles.roomTitle} numberOfLines={1}>{item.type}</Text>
+              {/* <Text style={styles.hotelName}>{item.hotels?.name || 'Hotel Sakura'}</Text> */}
+              <View style={styles.roomLocation}>
+                  <MapPin size={12} color="#9ca3af" />
+                  <Text style={styles.roomLocationText} numberOfLines={1}>MG Road, Gangtok, Sikkim</Text>
+              </View>
+              
+              <Text style={styles.roomDescription} numberOfLines={1}>{item.description || 'Luxury stay experience'}</Text>
+
+              {/* Amenities Row */}
+              <View style={styles.amenitiesRow}>
+                  {/* <View style={styles.amenityBadge}>
+                      <Wifi size={12} color="#9ca3af" />
+                      <Text style={styles.amenityText}>Wifi</Text>
+                  </View> */}
+                  <View style={styles.amenityBadge}>
+                      <Tv size={11} color="#9ca3af" />
+                      <Text style={styles.amenityText}>TV</Text>
+                  </View>
+                  <View style={styles.amenityBadge}>
+                      <Wind size={11} color="#9ca3af" />
+                      <Text style={styles.amenityText}>AC</Text>
+                  </View>
+                  <View style={styles.amenityBadge}>
+                      <Bed size={11} color="#9ca3af" />
+                      <Text style={styles.amenityText}>{item.bed_count || 1} Beds</Text>
+                  </View>
+              </View>
+          </View>
+
+          <View style={styles.roomFooter}>
+              <View style={{ flexDirection: 'column' }}>
+                  <Text style={styles.roomPrice}>₹{item.price} /night</Text>
+                  
+              </View>
+              <View style={{ flexDirection: 'column' }}>
+                  <TouchableOpacity style={styles.inquireButton}>
+                      <Text style={styles.inquireButtonText}>Inquire Now</Text>
+                  </TouchableOpacity>
+              </View>
+          </View>
+      </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+});
+
+const FeaturedStays = memo(({ rooms }: { rooms: any[] }) => {
+  if (!rooms || rooms.length === 0) return null;
+  return (
+    <View style={styles.sectionContainer}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Featured Stays</Text>
+        <Text style={styles.sectionSubtitle}>Swipe to explore our premium collection</Text>
+      </View>
+      <FlatList
+        data={rooms}
+        renderItem={({ item }) => <RoomCard item={item} />}
+        keyExtractor={(item) => item.id.toString()}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.featuredList}
+      />
+    </View>
+  );
+});
+
+const HomeFooter = memo(() => (
+  <View style={styles.footerContainer}>
+    <Testimonials />
+    <LocationMap />
+  </View>
+));
+
+const ServiceCard = memo(({ item }: { item: any }) => {
+  const navigation = useNavigation<any>();
+  const Icon = item.icon;
+  return (
+    <TouchableOpacity 
+      style={styles.serviceCard}
+      onPress={() => navigation.navigate(item.link, { filter: item.filter })}
+    >
+      <View style={styles.iconContainer}>
+        <Icon size={24} color="#db2777" />
+      </View>
+      <Text style={styles.serviceTitle}>{item.title}</Text>
+      <Text style={styles.serviceDesc}>{item.desc}</Text>
+    </TouchableOpacity>
+  );
+});
+
+export default function HomeScreen() {
+  const [featuredRooms, setFeaturedRooms] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchFeaturedRooms();
@@ -65,7 +247,7 @@ export default function HomeScreen() {
 
     const interval = setInterval(() => {
       fetchFeaturedRooms();
-    }, 5000);
+    }, 10000); // Increased to 10s to reduce load
 
     return () => {
       supabase.removeChannel(channel);
@@ -88,161 +270,14 @@ export default function HomeScreen() {
     }
   };
 
-  const renderRoomCard = ({ item }: { item: any }) => {
-     const images = item.images && item.images.length > 0 ? item.images : (item.image_url ? [item.image_url] : []);
-     const mainImage = images[0] || 'https://via.placeholder.com/300x200?text=No+Image';
-
-     return (
-        <TouchableOpacity 
-          style={styles.roomCard}
-          onPress={() => navigation.navigate('Contact', {
-             interest: `${item.type} (Room ${item.room_number})`,
-             type: 'room',
-             details: `Room: ${item.type} #${item.room_number}\nPrice: ${item.price ? `₹${item.price}` : 'On Request'}\nDescription: ${item.description || 'N/A'}`
-          })}
-        >
-          <LinearGradient
-            colors={['#6e717625', '#1c263e5c']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.roomGradient}
-          >
-          <View style={styles.imageContainer}>
-              <Image source={{ uri: mainImage }} style={styles.roomImage} />
-              <View style={styles.roomRatingBadge}>
-                 <Star size={10} color="#fbbf24" fill="#fbbf24" />
-                 <Text style={styles.roomRatingText}>4.8/5</Text>
-              </View>
-              <View style={styles.roomHeartBadge}>
-                 <Heart size={14} color="#fff" />
-              </View>
-          </View>
-          
-          <View style={styles.roomContent}>
-             <View>
-                 <Text style={styles.roomTitle} numberOfLines={1}>{item.type}</Text>
-                 <Text style={styles.hotelName}>{item.hotels?.name || 'Hotel Sakura'}</Text>
-                 <View style={styles.roomLocation}>
-                     <MapPin size={12} color="#9ca3af" />
-                     <Text style={styles.roomLocationText} numberOfLines={1}>MG Road, Gangtok, Sikkim</Text>
-                 </View>
-                 
-                 <Text style={styles.roomDescription} numberOfLines={1}>{item.description || 'Luxury stay experience'}</Text>
- 
-                 {/* Amenities Row */}
-                 <View style={styles.amenitiesRow}>
-                     <View style={styles.amenityBadge}>
-                         <Wifi size={12} color="#9ca3af" />
-                         <Text style={styles.amenityText}>Wifi</Text>
-                     </View>
-                     <View style={styles.amenityBadge}>
-                         <Tv size={12} color="#9ca3af" />
-                         <Text style={styles.amenityText}>TV</Text>
-                     </View>
-                     <View style={styles.amenityBadge}>
-                         <Wind size={12} color="#9ca3af" />
-                         <Text style={styles.amenityText}>AC</Text>
-                     </View>
-                     <View style={styles.amenityBadge}>
-                         <Bed size={12} color="#9ca3af" />
-                         <Text style={styles.amenityText}>{item.bed_count || 1} Beds</Text>
-                     </View>
-                 </View>
-             </View>
- 
-             <View style={styles.roomFooter}>
-                 <View>
-                     <Text style={styles.roomPrice}>₹{item.price}</Text>
-                     <Text style={styles.roomPriceSuffix}>/night</Text>
-                 </View>
-                 <View style={styles.inquireButton}>
-                     <Text style={styles.inquireButtonText}>Inquire Now</Text>
-                 </View>
-             </View>
-          </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      );
-   };
-
-  const renderHeader = () => (
+  const renderListHeader = () => (
     <View>
-      <View style={styles.heroContainer}>
-        <FlatList
-          ref={flatListRef}
-          data={gangtokImages}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.heroSlide}>
-              <Image source={{ uri: item }} style={styles.heroImage} />
-              <View style={styles.overlay} />
-            </View>
-          )}
-          onScrollToIndexFailed={info => {
-            const wait = new Promise(resolve => setTimeout(resolve, 500));
-            wait.then(() => {
-              flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
-            });
-          }}
-          onMomentumScrollEnd={(ev) => {
-            const newIndex = Math.floor(ev.nativeEvent.contentOffset.x / width);
-            setCurrentImageIndex(newIndex);
-          }}
-        />
-        <View style={styles.heroContent}>
-          <Text style={styles.heroTitle}>
-            Experience <Text style={styles.highlightText}>Gangtok</Text> Like Never Before
-          </Text>
-          <Text style={styles.heroSubtitle}>
-            Luxury stays in the heart of Sikkim. Discover mountains, culture, and comfort.
-          </Text>
-          <View style={styles.buttonGroup}>
-            <TouchableOpacity 
-              style={[styles.button, styles.primaryButton]}
-              onPress={() => navigation.navigate('Rooms')}
-            >
-              <Text style={styles.primaryButtonText}>Explore Rooms</Text>
-            </TouchableOpacity>
-            {/* <TouchableOpacity 
-              style={[styles.button, styles.outlineButton]}
-              onPress={() => navigation.navigate('Contact')}
-            >
-              <Text style={styles.outlineButtonText}>Inquire Now</Text>
-            </TouchableOpacity> */}
-          </View>
-        </View>
-      </View>
-
-      {/* Featured Stays Section */}
-      <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Stays</Text>
-          <Text style={styles.sectionSubtitle}>Swipe to explore our premium collection</Text>
-        </View>
-        <FlatList
-          data={featuredRooms}
-          renderItem={renderRoomCard}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.featuredList}
-        />
-      </View>
-
+      <HomeHero />
+      <FeaturedStays rooms={featuredRooms} />
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Our Premium Services</Text>
         <Text style={styles.sectionSubtitle}>Everything you need for a perfect stay.</Text>
       </View>
-    </View>
-  );
-
-  const renderFooter = () => (
-    <View style={styles.footerContainer}>
-      <Testimonials />
-      <LocationMap />
     </View>
   );
 
@@ -251,8 +286,8 @@ export default function HomeScreen() {
       <Header />
       <FlatList
         data={services}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
+        ListHeaderComponent={renderListHeader}
+        ListFooterComponent={HomeFooter}
         keyExtractor={(item) => item.title}
         numColumns={2}
         contentContainerStyle={styles.listContent}
@@ -267,21 +302,7 @@ export default function HomeScreen() {
             }}
           />
         }
-        renderItem={({ item }) => {
-          const Icon = item.icon;
-          return (
-            <TouchableOpacity 
-              style={styles.serviceCard}
-              onPress={() => navigation.navigate(item.link, { filter: item.filter })}
-            >
-              <View style={styles.iconContainer}>
-                <Icon size={24} color="#db2777" />
-              </View>
-              <Text style={styles.serviceTitle}>{item.title}</Text>
-              <Text style={styles.serviceDesc}>{item.desc}</Text>
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={({ item }) => <ServiceCard item={item} />}
       />
     </SafeAreaView>
   );
@@ -536,32 +557,33 @@ const styles = StyleSheet.create({
   },
   roomFooter: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
+    marginTop: -6,
   },
   roomPrice: {
-    fontSize: 20,
+    fontSize: 11,
     fontWeight: '700',
     color: '#fff',
   },
   roomPriceSuffix: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#94a3b8',
   },
   inquireButton: {
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 18,
+    paddingTop: 8,
   },
   inquireButtonText: {
     color: '#0f172a',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
-  // roomGradient: {
-  //   ...StyleSheet.absoluteFillObject,
-  //   borderRadius: 20,
-  // },
+  roomGradient: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 20,
+  },
 });

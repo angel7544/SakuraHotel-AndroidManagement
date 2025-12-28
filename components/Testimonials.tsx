@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, Dimensions, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { supabase } from '../lib/supabase';
-import { Star } from 'lucide-react-native';
+import { Star, ChevronDown, ChevronUp, Sparkles, Footprints, Coffee } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
+
+if (Platform.OS === 'android') {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
 
 interface Testimonial {
   id: string;
@@ -13,6 +19,107 @@ interface Testimonial {
   rating: number;
   image_url: string | null;
 }
+
+const TestimonialCard = ({ item }: { item: Testimonial }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpand = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded(!expanded);
+  };
+
+  return (
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={toggleExpand}
+      activeOpacity={0.9}
+    >
+      <View style={styles.header}>
+        <View style={styles.userInfo}>
+           <View style={styles.avatar}>
+            {item.image_url ? (
+              <Image source={{ uri: item.image_url }} style={styles.avatarImage} />
+            ) : (
+              <Text style={styles.avatarText}>{item.name ? item.name.charAt(0).toUpperCase() : '?'}</Text>
+            )}
+           </View>
+           <View>
+             <Text style={styles.name}>{item.name}</Text>
+             {item.role && <Text style={styles.role}>{item.role}</Text>}
+           </View>
+        </View>
+        
+        <View style={styles.ratingWrapper}>
+          <View style={styles.rating}>
+            <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
+            <Star size={14} color="#fbbf24" fill="#fbbf24" />
+          </View>
+          {expanded ? <ChevronUp size={20} color="#9ca3af" /> : <ChevronDown size={20} color="#9ca3af" />}
+        </View>
+      </View>
+
+      {/* Summary View */}
+      {!expanded && (
+        <View style={styles.collapsedPreview}>
+           <Text style={styles.previewText} numberOfLines={2}>"{item.message}"</Text>
+        </View>
+      )}
+
+      {/* Expanded Content */}
+      {expanded && (
+        <View style={styles.expandedContent}>
+          {/* Detailed Ratings */}
+          <View style={styles.ratingGrid}>
+             <View style={styles.ratingItem}>
+                <Text style={styles.ratingLabel}>Rooms</Text>
+                <Text style={styles.ratingValue}>{item.rating}</Text>
+             </View>
+             <View style={styles.ratingItem}>
+                <Text style={styles.ratingLabel}>Service</Text>
+                <Text style={styles.ratingValue}>{(item.rating * 0.9).toFixed(1)}</Text>
+             </View>
+             <View style={styles.ratingItem}>
+                <Text style={styles.ratingLabel}>Location</Text>
+                <Text style={styles.ratingValue}>{(item.rating * 0.95).toFixed(1)}</Text>
+             </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.detailSection}>
+            <View style={styles.detailHeaderRow}>
+               <Sparkles size={16} color="#db2777" />
+               <Text style={styles.sectionHeader}>Hotel Highlights</Text>
+            </View>
+            <Text style={styles.detailText}>Quiet • Clean • Friendly Staff</Text>
+          </View>
+
+          <View style={styles.detailSection}>
+            <View style={styles.detailHeaderRow}>
+               <Footprints size={16} color="#3b82f6" />
+               <Text style={styles.sectionHeader}>Walkability</Text>
+            </View>
+            <Text style={styles.detailText}>Near Gandhi Marg (5 min walk)</Text>
+          </View>
+
+          <View style={styles.detailSection}>
+            <View style={styles.detailHeaderRow}>
+               <Coffee size={16} color="#d97706" />
+               <Text style={styles.sectionHeader}>Food & Drinks</Text>
+            </View>
+            <Text style={styles.detailText}>Fresh milk tea available. Veg & Non-veg options.</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionHeader}>Review</Text>
+          <Text style={styles.fullMessage}>"{item.message}"</Text>
+
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 export default function Testimonials() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -28,7 +135,18 @@ export default function Testimonials() {
       
       if (data) setTestimonials(data);
     };
+
     fetchTestimonials();
+
+    const channel = supabase.channel('testimonials-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'testimonials' }, () => {
+        fetchTestimonials();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (testimonials.length === 0) return null;
@@ -40,32 +158,7 @@ export default function Testimonials() {
       
       <View style={styles.list}>
         {testimonials.map((t) => (
-          <View key={t.id} style={styles.card}>
-            <View style={styles.rating}>
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={16}
-                  color={i < t.rating ? '#3b82f6' : '#e5e7eb'}
-                  fill={i < t.rating ? '#3b82f6' : 'transparent'}
-                />
-              ))}
-            </View>
-            <Text style={styles.message}>"{t.message}"</Text>
-            <View style={styles.footer}>
-              <View style={styles.avatar}>
-                {t.image_url ? (
-                  <Image source={{ uri: t.image_url }} style={styles.avatarImage} />
-                ) : (
-                  <Text style={styles.avatarText}>{t.name.charAt(0)}</Text>
-                )}
-              </View>
-              <View>
-                <Text style={styles.name}>{t.name}</Text>
-                {t.role && <Text style={styles.role}>{t.role}</Text>}
-              </View>
-            </View>
-          </View>
+          <TestimonialCard key={t.id} item={t} />
         ))}
       </View>
     </View>
@@ -97,32 +190,23 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    overflow: 'hidden',
   },
-  rating: {
+  header: {
     flexDirection: 'row',
-    marginBottom: 12,
-    gap: 2,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  message: {
-    fontSize: 14,
-    color: '#4b5563',
-    fontStyle: 'italic',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  footer: {
+  userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-    paddingTop: 12,
   },
   avatar: {
     width: 40,
@@ -143,12 +227,96 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   name: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111827',
   },
   role: {
     fontSize: 12,
     color: '#6b7280',
+  },
+  ratingWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  rating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fffbeb',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#b45309',
+  },
+  collapsedPreview: {
+    marginTop: 12,
+  },
+  previewText: {
+    fontSize: 14,
+    color: '#4b5563',
+    fontStyle: 'italic',
+    lineHeight: 20,
+  },
+  expandedContent: {
+    marginTop: 16,
+  },
+  ratingGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    backgroundColor: '#f8fafc',
+    padding: 12,
+    borderRadius: 12,
+  },
+  ratingItem: {
+    alignItems: 'center',
+  },
+  ratingLabel: {
+    fontSize: 10,
+    color: '#64748b',
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  ratingValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginVertical: 12,
+  },
+  detailSection: {
+    marginBottom: 12,
+  },
+  detailHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  sectionHeader: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  detailText: {
+    fontSize: 14,
+    color: '#4b5563',
+    paddingLeft: 22, // Align with text start (icon width + gap)
+  },
+  fullMessage: {
+    fontSize: 14,
+    color: '#334155',
+    lineHeight: 22,
+    fontStyle: 'italic',
   },
 });
