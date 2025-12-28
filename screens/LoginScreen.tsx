@@ -13,10 +13,28 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [roles, setRoles] = useState<string[]>([]);
+  const [authChecking, setAuthChecking] = useState(true);
 
   useEffect(() => {
     let mounted = true;
-    checkUser();
+    
+    const initialize = async () => {
+        try {
+            const { data } = await supabase.auth.getUser();
+            if (mounted) {
+                setUser(data.user);
+                if (data.user) {
+                    await fetchRoles(data.user);
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        } finally {
+            if (mounted) setAuthChecking(false);
+        }
+    };
+
+    initialize();
     
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
@@ -34,15 +52,12 @@ export default function LoginScreen() {
     };
   }, []);
 
-  const checkUser = async () => {
-    const { data } = await supabase.auth.getUser();
-    setUser(data.user);
-    if (data.user) fetchRoles(data.user);
-  };
-
   const fetchRoles = async (u: any) => {
     const r = await getUserRoles(u);
     setRoles(r);
+    if (r.includes('owner') || r.includes('staff')) {
+        navigation.navigate('AdminDashboard');
+    }
   };
 
   const handleLogin = async () => {
@@ -73,7 +88,33 @@ export default function LoginScreen() {
     setLoading(false);
   };
 
+  if (authChecking) {
+      return (
+        <ImageBackground 
+          source={require('../assets/backgroundlg.jpg')} 
+          style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}
+          resizeMode="cover"
+        >
+             <ActivityIndicator size="large" color="#db2777" />
+             <Text style={{ marginTop: 20, color: '#fff', fontWeight: 'bold' }}>Verifying session...</Text>
+        </ImageBackground>
+      );
+  }
+
   if (user) {
+    if (roles.includes('owner') || roles.includes('staff')) {
+         return (
+            <ImageBackground 
+                source={require('../assets/backgroundlg.jpg')} 
+                style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}
+                resizeMode="cover"
+            >
+                 <ActivityIndicator size="large" color="#db2777" />
+                 <Text style={{ marginTop: 20, color: '#fff', fontWeight: 'bold' }}>Redirecting to Dashboard...</Text>
+            </ImageBackground>
+         );
+    }
+
     return (
       <ImageBackground 
         source={require('../assets/backgroundlg.jpg')} 
@@ -89,16 +130,6 @@ export default function LoginScreen() {
           </View>
           <Text style={styles.userName}>{user.email}</Text>
           <Text style={styles.userRole}>{roles.join(', ') || 'Customer'}</Text>
-
-          {(roles.includes('owner') || roles.includes('staff')) && (
-            <TouchableOpacity 
-              style={styles.adminButton} 
-              onPress={() => navigation.navigate('AdminDashboard')}
-            >
-              <LayoutDashboard size={20} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.adminButtonText}>Go to Admin Dashboard</Text>
-            </TouchableOpacity>
-          )}
           
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <LogOut size={20} color="#fff" style={{ marginRight: 8 }} />

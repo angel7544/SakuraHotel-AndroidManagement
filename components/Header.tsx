@@ -62,7 +62,7 @@ export default function Header() {
   const handleUserPress = () => {
     // Navigate to More tab if logged in, or Login if not?
     // Usually avatar click goes to profile or settings
-    navigation.navigate('More'); 
+    navigation.navigate('Login'); 
   };
 
   return (

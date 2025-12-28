@@ -189,7 +189,7 @@ const FeaturedStays = memo(({ rooms }: { rooms: any[] }) => {
   return (
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Featured Stays</Text>
+        <Text style={styles.sectionTitle}>Featured Suites & Stays</Text>
         <Text style={styles.sectionSubtitle}>Swipe to explore our premium collection</Text>
       </View>
       <FlatList
@@ -407,6 +407,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
+    textAlign: 'center',
     fontSize: 24,
     fontWeight: '700',
     color: '#111827',
@@ -416,6 +417,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 14,
     color: '#6b7280',
+    textAlign: 'center',
   },
   columnWrapper: {
     justifyContent: 'space-between',
