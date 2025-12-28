@@ -106,7 +106,13 @@ function MainTabs() {
       />
       <Tab.Screen 
         name="More" 
-        component={MoreScreen} 
+        component={MoreScreen}
+        listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate('MoreModal');
+            },
+        })}
         options={{
           tabBarIcon: ({ color, size }) => <MoreHorizontal color={color} size={size} />
         }}
@@ -141,6 +147,15 @@ function AppContent() {
           }}
         >
           <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen 
+            name="MoreModal" 
+            component={MoreScreen} 
+            options={{ 
+                presentation: 'transparentModal',
+                animation: 'none',
+                headerShown: false
+            }} 
+          />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="AdminDashboard" component={AdminNavigator} />
           <Stack.Screen name="AdminReservations" component={AdminReservationsScreen} />

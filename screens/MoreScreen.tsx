@@ -8,6 +8,7 @@ import {
   Animated,
   Dimensions,
   PanResponder,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -51,7 +52,7 @@ export default function MoreScreen() {
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 100) {
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
           closeSheet();
         } else {
           Animated.parallel([
@@ -114,10 +115,10 @@ export default function MoreScreen() {
     };
   }, []);
 
-  const closeSheet = () => {
+  const closeSheet = (onComplete?: () => void) => {
     Animated.parallel([
       Animated.timing(translateY, {
-        toValue: SHEET_HEIGHT,
+        toValue: SHEET_HEIGHT + 100,
         duration: 200,
         useNativeDriver: true,
       }),
@@ -126,7 +127,13 @@ export default function MoreScreen() {
         duration: 200,
         useNativeDriver: true,
       }),
-    ]).start(() => navigation.goBack());
+    ]).start(() => {
+      navigation.goBack();
+      if (onComplete) {
+        // Small delay to allow the modal to unmount before navigating
+        setTimeout(onComplete, 50);
+      }
+    });
   };
 
   const handleLogout = async () => {
@@ -152,7 +159,7 @@ export default function MoreScreen() {
           { opacity },
         ]}
       >
-        <TouchableOpacity style={styles.flex1} onPress={closeSheet} />
+        <TouchableOpacity style={styles.flex1} onPress={() => closeSheet()} />
       </Animated.View>
 
       <Animated.View
@@ -169,7 +176,7 @@ export default function MoreScreen() {
           <View style={styles.dragIndicator} />
 
           {/* Close button */}
-          <TouchableOpacity style={styles.closeButton} onPress={closeSheet}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => closeSheet()}>
             <X size={16} color="#6b7280" />
           </TouchableOpacity>
 
@@ -179,9 +186,16 @@ export default function MoreScreen() {
               <View style={styles.userContainer}>
                 <View style={styles.userInfoHeader}>
                   <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {user.email?.[0].toUpperCase() || 'U'}
-                    </Text>
+                    {user.user_metadata?.avatar_url ? (
+                      <Image
+                        source={{ uri: user.user_metadata.avatar_url }}
+                        style={styles.avatarImage}
+                      />
+                    ) : (
+                      <Text style={styles.avatarText}>
+                        {user.email?.[0].toUpperCase() || 'U'}
+                      </Text>
+                    )}
                   </View>
                   <View style={styles.userDetails}>
                     <Text style={styles.signedInLabel}>Signed in as</Text>
@@ -225,8 +239,7 @@ export default function MoreScreen() {
                 <TouchableOpacity
                   style={styles.loginButton}
                   onPress={() => {
-                    closeSheet();
-                    navigation.navigate('Login');
+                    closeSheet(() => navigation.navigate('Login'));
                   }}
                 >
                   <Text style={styles.loginButtonText}>Login to Dashboard</Text>
@@ -333,6 +346,7 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -340,15 +354,17 @@ const styles = StyleSheet.create({
   },
   flex1: { flex: 1 },
   sheet: {
-    position: 'absolute',
-    left: 5,
-    right: 5,
-    bottom: 5,
+    // position: 'absolute',
+    // left: 5,
+    // right: 5,
+    // bottom: 5,
     height: SHEET_HEIGHT,
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 16,
+    // marginHorizontal: 10,
+    // marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
@@ -493,7 +509,7 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 0,
     marginLeft: 4,
   },
   grid: {
