@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Linking, ActivityIndic
 import { useNavigation } from '@react-navigation/native';
 import { MapPin, User, LogOut } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
+import { Marquee } from '@animatereactnative/marquee';
 
-export default function Header() {
+export default function Header({ title }: { title?: string }) {
   const navigation = useNavigation<any>();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,14 @@ export default function Header() {
           </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })}>
-          <Text style={styles.logoText}>Sakura Hotel</Text>
+          {title ? (
+            <View style={{ height: 32, justifyContent: 'center', width: 150 }}>
+                <Text style={styles.logoText}>{title}</Text>
+             
+            </View>
+          ) : (
+            <Text style={styles.logoText}>Sakura Hotel</Text>
+          )}
         </TouchableOpacity>
       </View>
       

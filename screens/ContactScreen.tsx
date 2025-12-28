@@ -1,12 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Platform, SafeAreaView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TextInput, 
+  TouchableOpacity, 
+  ScrollView, 
+  Alert, 
+  ActivityIndicator, 
+  Platform, 
+  KeyboardAvoidingView,
+  Linking,
+  Dimensions
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
-import { Phone, Mail, MapPin, Calendar } from 'lucide-react-native';
+import { 
+  Phone, 
+  Mail, 
+  MapPin, 
+  Calendar, 
+  ArrowLeft, 
+  Send, 
+  User, 
+  MessageSquare,
+  Info
+} from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+const { width } = Dimensions.get('window');
+
 export default function ContactScreen() {
+  const navigation = useNavigation();
   const route = useRoute<any>();
+  
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -26,7 +54,6 @@ export default function ContactScreen() {
       }
       text += `\nPlease provide more information and availability.`;
       
-      // Only set if message is empty or starts with "I am interested"
       if (!message || message.startsWith("I am interested")) {
         setMessage(text);
       }
@@ -35,7 +62,10 @@ export default function ContactScreen() {
 
   const formatDate = (date: Date | null) => {
     if (!date) return '';
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const handleCheckInChange = (event: any, selectedDate?: Date) => {
@@ -44,6 +74,12 @@ export default function ContactScreen() {
     }
     if (selectedDate) {
       setCheckIn(selectedDate);
+      // Auto-set checkout to next day if not set or invalid
+      if (!checkOut || selectedDate >= checkOut) {
+        const nextDay = new Date(selectedDate);
+        nextDay.setDate(selectedDate.getDate() + 1);
+        setCheckOut(nextDay);
+      }
     }
   };
 
@@ -58,12 +94,21 @@ export default function ContactScreen() {
 
   const handleSubmit = async () => {
     if (!name || !phone || !checkIn || !checkOut) {
-      Alert.alert('Error', 'Please fill in all required fields.');
+      Alert.alert('Missing Information', 'Please fill in all required fields (Name, Phone, Dates).');
       return;
     }
 
     setLoading(true);
     try {
+      console.log('Submitting reservation:', {
+        customer_name: name,
+        customer_phone: phone,
+        customer_email: email,
+        check_in: formatDate(checkIn),
+        check_out: formatDate(checkOut),
+        notes: message,
+      });
+
       const { error } = await supabase.from('reservations').insert([{
         customer_name: name,
         customer_phone: phone,
@@ -75,317 +120,402 @@ export default function ContactScreen() {
       }]);
 
       if (error) {
-        throw error;
+        console.error('Supabase error:', error);
+        throw new Error(error.message || 'Database insertion failed');
       }
 
-      Alert.alert('Success', 'Inquiry submitted successfully!');
-      setName('');
-      setPhone('');
-      setEmail('');
-      setCheckIn(null);
-      setCheckOut(null);
-      setMessage('');
+      console.log('Reservation submitted successfully');
+
+      Alert.alert(
+        'Success', 
+        'Your inquiry has been submitted successfully! We will contact you shortly.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
     } catch (error: any) {
       console.error('Submission error:', error);
-      Alert.alert('Error', 'Failed to submit inquiry. Please try again.');
+      Alert.alert(
+        'Submission Failed', 
+        `We could not submit your inquiry.\n\nError: ${error.message || 'Unknown error'}\n\nPlease check your internet connection or try again later.`
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  function openLink(arg0: string): void {
-    // Implement linking if needed, e.g. Linking.openURL(arg0)
-    console.log('Open link:', arg0); 
-  }
+  const openLink = (url: string) => {
+    Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+  };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Contact & Inquiry</Text>
-        <Text style={styles.subtitle}>Have questions or ready to book? Fill out the form below.</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Navbar / Header */}
+      <View style={styles.navbar}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <ArrowLeft size={24} color="#1f2937" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Contact & Booking</Text>
+        <View style={{ width: 40 }} /> 
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Send Inquiry</Text>
-        
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Full Name *</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="John Doe"
-            placeholderTextColor="#9ca3af"
-          />
-        </View>
-
-        <View style={styles.row}>
-          <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-            <Text style={styles.label}>Phone *</Text>
-            <TextInput
-              style={styles.input}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="+1 234..."
-              placeholderTextColor="#9ca3af"
-              keyboardType="phone-pad"
-            />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Hero Section */}
+          <View style={styles.hero}>
+            <Text style={styles.heroTitle}>Get in Touch</Text>
+            <Text style={styles.heroSubtitle}>
+              Plan your stay with us. Fill out the form or reach us directly.
+            </Text>
           </View>
-          <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="john@example.com"
-              placeholderTextColor="#9ca3af"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-        </View>
 
-        <View style={styles.row}>
-          <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-            <Text style={styles.label}>Check In *</Text>
-            <TouchableOpacity
-              style={styles.dateInput}
-              onPress={() => setShowCheckInPicker(true)}
+          {/* Contact Form Card */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Send size={20} color="#db2777" />
+              <Text style={styles.cardTitle}>Reservation Inquiry</Text>
+            </View>
+
+            {/* Name Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Full Name *</Text>
+              <View style={styles.inputWrapper}>
+                <User size={20} color="#9ca3af" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="e.g. John Doe"
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+            </View>
+
+            {/* Phone & Email Row */}
+            <View style={styles.row}>
+              <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
+                <Text style={styles.label}>Phone *</Text>
+                <View style={styles.inputWrapper}>
+                  <Phone size={20} color="#9ca3af" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={phone}
+                    onChangeText={setPhone}
+                    placeholder="+1 234..."
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+              </View>
+              
+              <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
+                <Text style={styles.label}>Email</Text>
+                <View style={styles.inputWrapper}>
+                  <Mail size={20} color="#9ca3af" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Optional"
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Dates Row */}
+            <View style={styles.row}>
+              <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
+                <Text style={styles.label}>Check In *</Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowCheckInPicker(true)}
+                >
+                  <Calendar size={20} color={checkIn ? "#db2777" : "#9ca3af"} />
+                  <Text style={[styles.dateText, !checkIn && styles.placeholderText]}>
+                    {checkIn ? formatDate(checkIn) : 'Select Date'}
+                  </Text>
+                </TouchableOpacity>
+                {showCheckInPicker && (
+                  <DateTimePicker
+                    value={checkIn || new Date()}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={handleCheckInChange}
+                    minimumDate={new Date()}
+                  />
+                )}
+              </View>
+
+              <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
+                <Text style={styles.label}>Check Out *</Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowCheckOutPicker(true)}
+                >
+                  <Calendar size={20} color={checkOut ? "#db2777" : "#9ca3af"} />
+                  <Text style={[styles.dateText, !checkOut && styles.placeholderText]}>
+                    {checkOut ? formatDate(checkOut) : 'Select Date'}
+                  </Text>
+                </TouchableOpacity>
+                {showCheckOutPicker && (
+                  <DateTimePicker
+                    value={checkOut || new Date(Date.now() + 86400000)}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={handleCheckOutChange}
+                    minimumDate={checkIn || new Date()}
+                  />
+                )}
+              </View>
+            </View>
+
+            {/* Message Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Message / Special Requests</Text>
+              <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
+                <MessageSquare size={20} color="#9ca3af" style={[styles.inputIcon, { marginTop: 12 }]} />
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={message}
+                  onChangeText={setMessage}
+                  placeholder="I would like to book a room with..."
+                  placeholderTextColor="#9ca3af"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+              </View>
+            </View>
+
+            {/* Submit Button */}
+            <TouchableOpacity 
+              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={loading}
             >
-              <Text style={checkIn ? styles.dateText : styles.placeholderText}>
-                {checkIn ? formatDate(checkIn) : 'YYYY-MM-DD'}
-              </Text>
-              <Calendar size={16} color="#6b7280" />
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Text style={styles.submitButtonText}>Send Request</Text>
+                  <ArrowLeft size={18} color="#fff" style={{ transform: [{ rotate: '180deg' }] }} />
+                </>
+              )}
             </TouchableOpacity>
-            {showCheckInPicker && (
-              <DateTimePicker
-                value={checkIn || new Date()}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleCheckInChange}
-                minimumDate={new Date()}
-              />
-            )}
           </View>
-          <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-            <Text style={styles.label}>Check Out *</Text>
-            <TouchableOpacity
-              style={styles.dateInput}
-              onPress={() => setShowCheckOutPicker(true)}
-            >
-              <Text style={checkOut ? styles.dateText : styles.placeholderText}>
-                {checkOut ? formatDate(checkOut) : 'YYYY-MM-DD'}
-              </Text>
-              <Calendar size={16} color="#6b7280" />
-            </TouchableOpacity>
-            {showCheckOutPicker && (
-              <DateTimePicker
-                value={checkOut || new Date(new Date().setDate(new Date().getDate() + 1))}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleCheckOutChange}
-                minimumDate={checkIn || new Date()}
-              />
-            )}
-          </View>
-        </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Message</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={message}
-            onChangeText={setMessage}
-            placeholder="I would like to book..."
-            placeholderTextColor="#9ca3af"
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <TouchableOpacity 
-          style={styles.submitButton}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitButtonText}>Submit Inquiry</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.infoSection}>
-        <TouchableOpacity 
-          style={styles.infoItem}
-          onPress={() => openLink('tel:+919135893002')}
-        >
-          <View style={styles.iconContainer}>
-            <Phone size={20} color="#db2777" />
-          </View>
-          <View>
-            <Text style={styles.infoLabel}>Phone</Text>
-            <Text style={styles.infoValue}>+91 91358 93002</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.infoItem}
-          onPress={() => openLink('https://maps.google.com/?q=br31+technologies')}
-        >
-          <View style={styles.iconContainer}>
-            <MapPin size={20} color="#db2777" />
-          </View>
-          <View>
-            <Text style={styles.infoLabel}>Address</Text>
-            <Text style={styles.infoValue}>Gangtok, Sikkim, India</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.infoItem}
-          onPress={() => openLink('mailto:support@br31tech.live')}
-        >
-          <View style={styles.iconContainer}>
-            <Mail size={20} color="#db2777" />
-          </View>
-          <View>
-            <Text style={styles.infoLabel}>Email</Text>
-            <Text style={styles.infoValue}>support@br31tech.live</Text>
-          </View>
-        </TouchableOpacity></View>
-      </ScrollView>
-    
-    );
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f3f4f6',
   },
-  content: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  header: {
-    marginBottom: 24,
+  navbar: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
+  backButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
     color: '#111827',
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  hero: {
+    marginBottom: 24,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1f2937',
     marginBottom: 8,
   },
-  subtitle: {
+  heroSubtitle: {
     fontSize: 16,
     color: '#6b7280',
-    textAlign: 'center',
+    lineHeight: 24,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowRadius: 12,
+    elevation: 4,
     marginBottom: 24,
   },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
+    gap: 10,
   },
-  inputGroup: {
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  inputContainer: {
     marginBottom: 16,
   },
   row: {
     flexDirection: 'row',
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
     color: '#374151',
     marginBottom: 6,
+    marginLeft: 4,
   },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: '#111827',
-  },
-  dateInput: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 50,
   },
-  dateText: {
-    fontSize: 16,
-    color: '#111827',
+  textAreaWrapper: {
+    height: 120,
+    alignItems: 'flex-start',
   },
-  placeholderText: {
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
     fontSize: 16,
-    color: '#9ca3af',
+    color: '#1f2937',
+    height: '100%',
   },
   textArea: {
-    height: 100,
+    paddingVertical: 12,
+    height: '100%',
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 50,
+    gap: 8,
+  },
+  dateText: {
+    fontSize: 15,
+    color: '#1f2937',
+    fontWeight: '500',
+  },
+  placeholderText: {
+    color: '#9ca3af',
   },
   submitButton: {
     backgroundColor: '#db2777',
-    borderRadius: 8,
-    paddingVertical: 14,
+    borderRadius: 12,
+    height: 54,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: 8,
+    shadowColor: '#db2777',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
   },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  infoSection: {
-    gap: 16,
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 16,
+    marginLeft: 4,
   },
-  infoItem: {
+  infoGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  infoCard: {
+    flex: 1,
+    minWidth: '45%',
     backgroundColor: '#fff',
     padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#f3f4f6',
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#fce7f3',
-    borderRadius: 8,
-    justifyContent: 'center',
+    borderRadius: 16,
     alignItems: 'center',
-    marginRight: 16,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  infoLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#111827',
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
-  infoValue: {
-    fontSize: 14,
+  infoTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  infoSubtitle: {
+    fontSize: 13,
     color: '#6b7280',
   },
+  footerSpacer: {
+    height: 40,
+  }
 });

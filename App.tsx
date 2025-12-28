@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -35,12 +35,14 @@ import AdminOffersScreen from './screens/admin/AdminOffersScreen';
 import AdminTestimonialsScreen from './screens/admin/AdminTestimonialsScreen';
 import AdminOfferFormScreen from './screens/admin/AdminOfferFormScreen';
 import AdminTestimonialFormScreen from './screens/admin/AdminTestimonialFormScreen';
-import { ImageBackground } from 'react-native';
+import { ImageBackground, Platform } from 'react-native';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import AdminBlogPostScreen from './screens/admin/AdminBlogPostScreen';
 import AdminBlogPostFormScreen from './screens/admin/AdminBlogPostFormScreen';
 import BlogScreen from './screens/BlogScreen';
 import BlogArticleScreen from './screens/BlogArticleScreen';
+import { getUserRoles } from './lib/auth';
+import { supabase } from './lib/supabase';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -49,6 +51,23 @@ export const navigationRef = createNavigationContainerRef();
 
 function MainTabs() {
   const { colors } = useTheme();
+  const [isStaffOrAdmin, setIsStaffOrAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkRoles = async () => {
+      const roles = await getUserRoles();
+      setIsStaffOrAdmin(roles.includes('staff') || roles.includes('owner'));
+    };
+    
+    checkRoles();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkRoles();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -56,15 +75,29 @@ function MainTabs() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
-          backgroundColor: colors.card,
-          borderTopColor: colors.border,
+          position: 'absolute',
+          bottom: 0,
+          left: 20,
+          right: 20,
+          elevation: 5,
+          backgroundColor: '#ffffff',
+          borderRadius: 30,
+          height: 70,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          borderTopWidth: 0,
+          paddingBottom: 10,
+          paddingTop: 10,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          paddingBottom: 5,
+          fontSize: 10,
+          fontWeight: '600',
+          marginBottom: 5,
+        },
+        tabBarItemStyle: {
+          // paddingVertical: 5,
         }
       }}
     >
@@ -82,21 +115,25 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => <Bed color={color} size={size} />
         }}
       />
-      <Tab.Screen 
-        name="Packages" 
-        component={PackagesScreen} 
-        options={{
-          tabBarIcon: ({ color, size }) => <Package color={color} size={size} />
-        }}
-      />
-      <Tab.Screen 
-        name="Catalog" 
-        component={CatalogScreen} 
-        options={{
-          title: 'Services',
-          tabBarIcon: ({ color, size }) => <BellDot color={color} size={size} />
-        }}
-      />
+      {!isStaffOrAdmin && (
+        <>
+          <Tab.Screen 
+            name="Packages" 
+            component={PackagesScreen} 
+            options={{
+              tabBarIcon: ({ color, size }) => <Package color={color} size={size} />
+            }}
+          />
+          <Tab.Screen 
+            name="Catalog" 
+            component={CatalogScreen} 
+            options={{
+              title: 'Services',
+              tabBarIcon: ({ color, size }) => <BellDot color={color} size={size} />
+            }}
+          />
+        </>
+      )}
       <Tab.Screen 
         name="Blogs" 
         component={BlogScreen} 
