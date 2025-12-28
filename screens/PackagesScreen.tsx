@@ -23,6 +23,8 @@ export default function PackagesScreen() {
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<any>();
+    const [refreshing, setRefreshing] = useState(false);
+  
 
   useEffect(() => {
     fetchPackages();
@@ -42,7 +44,8 @@ export default function PackagesScreen() {
       const { data, error } = await supabase
         .from('packages')
         .select('*')
-        .eq('status', 'Active');
+        .eq('status', 'Active')
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       setPackages(data || []);
@@ -50,8 +53,14 @@ export default function PackagesScreen() {
       console.error('Error fetching packages:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchPackages();
+  }, []);
 
   const handleBookNow = (item: PackageItem) => {
     navigation.navigate('Contact', {
@@ -124,6 +133,8 @@ export default function PackagesScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={<Text style={styles.emptyText}>No packages available.</Text>}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
       />
     </SafeAreaView>
   );
@@ -139,12 +150,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   title: {
-    fontSize: 28,
+    textAlign: 'center',
+    fontSize: 24,
     fontWeight: '700',
     color: '#111827',
   },
   subtitle: {
-    fontSize: 16,
+    textAlign: 'center',
+    fontSize: 12,
     color: '#6b7280',
   },
   center: {

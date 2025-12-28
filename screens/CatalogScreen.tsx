@@ -185,6 +185,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f3f4f6',
   },
   title: {
+    textAlign: 'center',
     fontSize: 24,
     fontWeight: '700',
     color: '#111827',
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     borderRadius: 12,
     paddingHorizontal: 12,
-    height: 48,
+    height: 46,
   },
   searchIcon: {
     marginRight: 8,
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   filterContainer: {
-    height: 60,
+    height: 80,
     backgroundColor: '#fff',
   },
   filterContent: {

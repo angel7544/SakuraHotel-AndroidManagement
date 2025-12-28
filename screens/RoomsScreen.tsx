@@ -291,7 +291,7 @@ export default function RoomsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
       <View style={styles.header}>
-        <Text style={styles.title}>Our Rooms</Text>
+        <Text style={styles.title}>Our Suites & Rooms</Text>
         <Text style={styles.subtitle}>Comfort & Luxury defined.</Text>
       </View>
       <FlatList
@@ -320,12 +320,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   title: {
-    fontSize: 28,
+    textAlign: 'center',
+    fontSize: 24,
     fontWeight: '700',
     color: '#111827',
   },
   subtitle: {
-    fontSize: 16,
+    textAlign: 'center',
+    fontSize: 12,
     color: '#6b7280',
   },
   center: {

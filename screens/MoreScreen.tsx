@@ -341,9 +341,9 @@ const styles = StyleSheet.create({
   flex1: { flex: 1 },
   sheet: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    left: 5,
+    right: 5,
+    bottom: 5,
     height: SHEET_HEIGHT,
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 10,
+    elevation: 5,
   },
   safe: { flex: 1 },
   dragIndicator: {
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: '#d1d5db',
     alignSelf: 'center',
-    marginVertical: 8,
+    marginVertical:4,
   },
   closeButton: {
     position: 'absolute',
