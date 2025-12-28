@@ -1,54 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   FlatList, 
-  Image, 
   TouchableOpacity, 
-  ActivityIndicator,
-  Alert 
+  ActivityIndicator, 
+  Alert,
+  Image
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
-import { Plus, Edit2, Trash2, Star } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Plus, Edit2, Trash2, MessageSquare, Star, User } from 'lucide-react-native';
+
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function AdminTestimonialsScreen() {
+  const navigation = useNavigation<any>();
+  const { colors } = useTheme();
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation<any>();
+
+  const fetchTestimonials = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('testimonials')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (data) setTestimonials(data);
+    setLoading(false);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchTestimonials();
+    }, [fetchTestimonials])
+  );
 
   useEffect(() => {
-    fetchTestimonials();
-
     const channel = supabase.channel('admin-testimonials')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'testimonials' }, fetchTestimonials)
       .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchTestimonials]);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchTestimonials = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('testimonials')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setTestimonials(data || []);
-    } catch (error) {
-      console.error(error);
-      // Fail silently if table doesn't exist yet, just show empty
-      setLoading(false); 
-    } finally {
-      setLoading(false);
-    }
+  const toggleStatus = async (item: any) => {
+    const newStatus = item.status === 'Active' ? 'Inactive' : 'Active';
+    const { error } = await supabase.from('testimonials').update({ status: newStatus }).eq('id', item.id);
+    if (error) Alert.alert('Error', error.message);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     Alert.alert(
       'Delete Testimonial',
       'Are you sure you want to delete this testimonial?',
@@ -56,7 +59,7 @@ export default function AdminTestimonialsScreen() {
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Delete', 
-          style: 'destructive',
+          style: 'destructive', 
           onPress: async () => {
             const { error } = await supabase.from('testimonials').delete().eq('id', id);
             if (error) Alert.alert('Error', error.message);
@@ -67,75 +70,81 @@ export default function AdminTestimonialsScreen() {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={[styles.statusBadge, { 
-          backgroundColor: item.status === 'Active' ? '#dcfce7' : '#fee2e2' 
-        }]}>
-          <Text style={[styles.statusText, { 
-            color: item.status === 'Active' ? '#166534' : '#991b1b' 
-          }]}>{item.status}</Text>
-        </View>
-        <View style={styles.actionButtons}>
-          <TouchableOpacity onPress={() => navigation.navigate('AdminTestimonialForm', { id: item.id })} style={styles.iconButton}>
-            <Edit2 size={18} color="#3b82f6" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.iconButton}>
-            <Trash2 size={18} color="#ef4444" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.contentRow}>
-        <View style={styles.imageContainer}>
-          {item.image_url ? (
-            <Image source={{ uri: item.image_url }} style={styles.image} resizeMode="cover" />
-          ) : (
-            <View style={[styles.image, styles.placeholderImage]}>
-              <Text style={styles.placeholderText}>No Img</Text>
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={styles.header}>
+        <View style={styles.userInfo}>
+            {item.image_url ? (
+                <Image source={{ uri: item.image_url }} style={styles.avatar} />
+            ) : (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: colors.border }]}>
+                    <User size={20} color={colors.textMuted} />
+                </View>
+            )}
+            <View style={{flex: 1}}>
+                <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
+                {item.role ? <Text style={[styles.role, { color: colors.textSecondary }]}>{item.role}</Text> : null}
             </View>
-          )}
-        </View>
-        
-        <View style={styles.textContent}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.role}>{item.role}</Text>
-          <View style={styles.ratingRow}>
-            {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                size={14} 
-                color={i < (item.rating || 5) ? "#eab308" : "#d1d5db"} 
-                fill={i < (item.rating || 5) ? "#eab308" : "none"}
-              />
-            ))}
-          </View>
-        </View>
-      </View>
-      
-      <Text style={styles.message} numberOfLines={2}>{item.message}</Text>
-    </View>
-  );
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.topActions}>
-        <View>
-          <Text style={styles.title}>Testimonials</Text>
-          <Text style={styles.subtitle}>Manage Reviews/Feedback</Text>
         </View>
         <TouchableOpacity 
-          style={styles.addButton}
+          style={[
+            styles.statusBadge, 
+            { backgroundColor: item.status === 'Active' ? '#dcfce7' : '#fee2e2' }
+          ]}
+          onPress={() => toggleStatus(item)}
+        >
+          <Text style={[
+            styles.statusText,
+            { color: item.status === 'Active' ? '#166534' : '#991b1b' }
+          ]}>
+            {item.status}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.ratingRow}>
+            {[...Array(5)].map((_, i) => (
+                <Star 
+                    key={i} 
+                    size={16} 
+                    color={i < item.rating ? "#eab308" : colors.border} 
+                    fill={i < item.rating ? "#eab308" : "transparent"} 
+                />
+            ))}
+            <Text style={[styles.ratingText, { color: colors.textSecondary }]}>({item.rating})</Text>
+        </View>
+
+        <Text style={[styles.message, { color: colors.textSecondary }]} numberOfLines={3}>"{item.message}"</Text>
+        
+        <View style={styles.actions}>
+            <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('AdminTestimonialForm', { id: item.id })}>
+                <Edit2 size={16} color={colors.textSecondary} />
+                <Text style={[styles.actionText, { color: colors.textSecondary }]}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
+                <Trash2 size={16} color={colors.error} />
+                <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
+            </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+    );
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.topActions, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Testimonials</Text>
+        <TouchableOpacity 
+          style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={() => navigation.navigate('AdminTestimonialForm')}
         >
-          <Plus size={20} color="#fff" />
-          <Text style={styles.addButtonText}>Add</Text>
+          <Plus size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#db2777" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -145,7 +154,7 @@ export default function AdminTestimonialsScreen() {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No testimonials found</Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>No testimonials found</Text>
             </View>
           }
         />
@@ -155,137 +164,116 @@ export default function AdminTestimonialsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
+  container: { flex: 1 },
   topActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 24,
-    backgroundColor: '#fff',
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 4,
-  },
+  title: { fontSize: 24, fontWeight: 'bold' },
   addButton: {
-    flexDirection: 'row',
-    backgroundColor: '#db2777',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    gap: 8,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  center: {
-    flex: 1,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  listContent: {
-    padding: 24,
-  },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  listContent: { padding: 16 },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 16,
     padding: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowRadius: 4,
     elevation: 2,
   },
-  cardHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  name: {
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  role: {
+    fontSize: 12,
+    marginTop: 2,
+  },
   statusBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 9999,
+    borderRadius: 12,
   },
   statusText: {
     fontSize: 12,
     fontWeight: '600',
   },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  iconButton: {
-    padding: 8,
-    backgroundColor: '#f9fafb',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#f3f4f6',
-  },
-  contentRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 12,
-  },
-  imageContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    overflow: 'hidden',
-    backgroundColor: '#f3f4f6',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  placeholderImage: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: {
-    fontSize: 10,
-    color: '#9ca3af',
-  },
-  textContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  role: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 4,
+  content: {
+    gap: 12,
   },
   ratingRow: {
     flexDirection: 'row',
-    gap: 2,
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    marginLeft: 4,
   },
   message: {
     fontSize: 14,
-    color: '#4b5563',
     fontStyle: 'italic',
     lineHeight: 20,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 16,
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -293,7 +281,6 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   emptyText: {
-    color: '#6b7280',
     fontSize: 16,
   },
 });

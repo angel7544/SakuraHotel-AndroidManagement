@@ -8,30 +8,40 @@ import {
   ScrollView, 
   ActivityIndicator, 
   Alert,
-  Image
+  Image,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/upload';
-import { Save, ArrowLeft, Upload, X } from 'lucide-react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { Save, ArrowLeft, Image as ImageIcon, Star, Trash2 } from 'lucide-react-native';
 import { Picker } from '@react-native-picker/picker';
+import * as ImagePicker from 'expo-image-picker';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function AdminTestimonialFormScreen() {
   const navigation = useNavigation();
   const route = useRoute<any>();
   const { id } = route.params || {};
+  const { colors } = useTheme();
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(!!id);
   
   const [formData, setFormData] = useState({
-    name: '',
-    role: '',
-    message: '',
+    name: "",
+    role: "",
+    message: "",
     rating: 5,
-    status: 'Active',
-    image_url: '',
+    rooms_rating: 5.0,
+    service_rating: 5.0,
+    location_rating: 5.0,
+    hotel_highlights: "",
+    walkability: "",
+    food_and_drinks: "",
+    status: "Active",
+    image_url: ""
   });
 
   const [newImage, setNewImage] = useState<string | null>(null);
@@ -50,10 +60,23 @@ export default function AdminTestimonialFormScreen() {
       .single();
     
     if (error) {
-      Alert.alert('Error', 'Failed to fetch testimonial details');
+      Alert.alert('Error', 'Failed to fetch testimonial');
       navigation.goBack();
     } else {
-      setFormData(data);
+      setFormData({
+        name: data.name || "",
+        role: data.role || "",
+        message: data.message || "",
+        rating: data.rating || 5,
+        rooms_rating: data.rooms_rating || 5.0,
+        service_rating: data.service_rating || 5.0,
+        location_rating: data.location_rating || 5.0,
+        hotel_highlights: data.hotel_highlights || "",
+        walkability: data.walkability || "",
+        food_and_drinks: data.food_and_drinks || "",
+        status: data.status || "Active",
+        image_url: data.image_url || ""
+      });
     }
     setFetching(false);
   };
@@ -79,31 +102,41 @@ export default function AdminTestimonialFormScreen() {
 
     setLoading(true);
     try {
-      let finalImageUrl = formData.image_url;
+      let imageUrl = formData.image_url;
 
       if (newImage) {
         const url = await uploadImage(newImage, 'sakura', 'testimonials');
-        if (url) finalImageUrl = url;
+        if (url) imageUrl = url;
       }
 
       const payload = {
-        ...formData,
-        image_url: finalImageUrl,
+        name: formData.name,
+        role: formData.role || null,
+        message: formData.message,
+        rating: Number(formData.rating),
+        rooms_rating: formData.rooms_rating ? Number(formData.rooms_rating) : null,
+        service_rating: formData.service_rating ? Number(formData.service_rating) : null,
+        location_rating: formData.location_rating ? Number(formData.location_rating) : null,
+        hotel_highlights: formData.hotel_highlights || null,
+        walkability: formData.walkability || null,
+        food_and_drinks: formData.food_and_drinks || null,
+        status: formData.status,
+        image_url: imageUrl
       };
 
       if (id) {
-        const { error } = await supabase
-          .from('testimonials')
-          .update(payload)
-          .eq('id', id);
+        const { error } = await supabase.from('testimonials').update(payload).eq('id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('testimonials')
-          .insert([payload]);
+        const { error } = await supabase.from('testimonials').insert([payload]);
         if (error) throw error;
       }
-      navigation.goBack();
+      
+      Alert.alert(
+        'Success',
+        'Testimonial saved successfully',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
     } catch (error: any) {
       Alert.alert('Error', error.message);
     } finally {
@@ -113,227 +146,303 @@ export default function AdminTestimonialFormScreen() {
 
   if (fetching) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#db2777" />
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#111827" />
+          <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>{id ? 'Edit Testimonial' : 'New Testimonial'}</Text>
-        <View style={{ width: 40 }} />
+        <Text style={[styles.title, { color: colors.text }]}>{id ? 'Edit Testimonial' : 'Add Testimonial'}</Text>
+        <TouchableOpacity onPress={handleSave} disabled={loading} style={[styles.saveButton, { backgroundColor: colors.primary }]}>
+          {loading ? <ActivityIndicator color="#fff" size="small" /> : <Save size={20} color="#fff" />}
+          <Text style={styles.saveText}>Save</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.form}>
-        <View style={styles.row}>
-          <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-            <Text style={styles.label}>Name *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
-              placeholder="John Doe"
-            />
-          </View>
-          <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-            <Text style={styles.label}>Role</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.role}
-              onChangeText={(text) => setFormData({ ...formData, role: text })}
-              placeholder="CEO, Tech Corp"
-            />
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Message *</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={formData.message}
-            onChangeText={(text) => setFormData({ ...formData, message: text })}
-            placeholder="Share the experience..."
-            multiline
-            numberOfLines={4}
-          />
-        </View>
-
-        <View style={styles.row}>
-          <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-            <Text style={styles.label}>Rating</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.rating}
-                onValueChange={(itemValue) => setFormData({ ...formData, rating: itemValue })}
-              >
-                <Picker.Item label="5 Stars" value={5} />
-                <Picker.Item label="4 Stars" value={4} />
-                <Picker.Item label="3 Stars" value={3} />
-                <Picker.Item label="2 Stars" value={2} />
-                <Picker.Item label="1 Star" value={1} />
-              </Picker>
-            </View>
-          </View>
-          <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-            <Text style={styles.label}>Status</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.status}
-                onValueChange={(itemValue) => setFormData({ ...formData, status: itemValue })}
-              >
-                <Picker.Item label="Active" value="Active" />
-                <Picker.Item label="Inactive" value="Inactive" />
-              </Picker>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Photo</Text>
-          <View style={styles.fileInputRow}>
-            <TouchableOpacity onPress={pickImage} style={styles.chooseFileButton}>
-              <Text style={styles.chooseFileText}>Choose File</Text>
-            </TouchableOpacity>
-            <Text style={styles.fileNameText}>
-              {newImage ? 'Image selected' : (formData.image_url ? 'Current image' : 'No file chosen')}
-            </Text>
-          </View>
-          
-          {(formData.image_url || newImage) && (
-             <View style={styles.imagePreviewContainer}>
-               <Image 
-                 source={{ uri: newImage || formData.image_url }} 
-                 style={styles.previewImage} 
-               />
-               <TouchableOpacity 
-                 style={styles.removeImageButton}
-                 onPress={() => {
-                   setNewImage(null);
-                   setFormData({ ...formData, image_url: '' });
-                 }}
-               >
-                 <X size={16} color="#fff" />
-               </TouchableOpacity>
-             </View>
-          )}
-        </View>
-
-        <View style={styles.footerButtons}>
-          <TouchableOpacity 
-            style={styles.saveButton} 
-            onPress={handleSave} 
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
+        
+        {/* Image Upload */}
+        <View style={styles.imageSection}>
+          <TouchableOpacity onPress={pickImage} style={[styles.imagePlaceholder, { borderColor: colors.border, backgroundColor: colors.card }]}>
+            {newImage || formData.image_url ? (
+              <Image source={{ uri: newImage || formData.image_url }} style={styles.image} />
             ) : (
-              <Text style={styles.saveText}>Save</Text>
+              <View style={styles.imagePlaceholderContent}>
+                <ImageIcon size={32} color={colors.textMuted} />
+                <Text style={[styles.imagePlaceholderText, { color: colors.textMuted }]}>Add Photo</Text>
+              </View>
             )}
+            <View style={[styles.editIconBadge, { backgroundColor: colors.primary }]}>
+                <ImageIcon size={14} color="#fff" />
+            </View>
           </TouchableOpacity>
         </View>
+
+        {/* Basic Info */}
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Basic Information</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Guest Name *</Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.name}
+              onChangeText={(text) => setFormData({ ...formData, name: text })}
+              placeholder="e.g. John Doe"
+              placeholderTextColor={colors.textMuted}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Role / Title</Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.role}
+              onChangeText={(text) => setFormData({ ...formData, role: text })}
+              placeholder="e.g. Business Traveler"
+              placeholderTextColor={colors.textMuted}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Message *</Text>
+            <TextInput
+              style={[styles.input, styles.textArea, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.message}
+              onChangeText={(text) => setFormData({ ...formData, message: text })}
+              placeholder="Guest's feedback..."
+              placeholderTextColor={colors.textMuted}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+          </View>
+        </View>
+
+        {/* Ratings */}
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Ratings</Text>
+          
+          <View style={styles.ratingInputRow}>
+            <Text style={[styles.label, { color: colors.textSecondary, flex: 1 }]}>Overall Rating</Text>
+            <View style={styles.pickerContainer}>
+                <Picker
+                    selectedValue={formData.rating}
+                    onValueChange={(itemValue) => setFormData({ ...formData, rating: itemValue })}
+                    style={{ height: 50, width: 120, color: colors.text }}
+                    dropdownIconColor={colors.text}
+                >
+                    {[1, 2, 3, 4, 5].map((r) => (
+                        <Picker.Item key={r} label={r.toString()} value={r} />
+                    ))}
+                </Picker>
+            </View>
+          </View>
+
+          <View style={styles.ratingInputRow}>
+            <Text style={[styles.label, { color: colors.textSecondary, flex: 1 }]}>Rooms Rating</Text>
+             <TextInput
+              style={[styles.smallInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.rooms_rating.toString()}
+              onChangeText={(text) => setFormData({ ...formData, rooms_rating: parseFloat(text) || 0 })}
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View style={styles.ratingInputRow}>
+            <Text style={[styles.label, { color: colors.textSecondary, flex: 1 }]}>Service Rating</Text>
+            <TextInput
+              style={[styles.smallInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.service_rating.toString()}
+              onChangeText={(text) => setFormData({ ...formData, service_rating: parseFloat(text) || 0 })}
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View style={styles.ratingInputRow}>
+            <Text style={[styles.label, { color: colors.textSecondary, flex: 1 }]}>Location Rating</Text>
+            <TextInput
+              style={[styles.smallInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.location_rating.toString()}
+              onChangeText={(text) => setFormData({ ...formData, location_rating: parseFloat(text) || 0 })}
+              keyboardType="numeric"
+            />
+          </View>
+        </View>
+
+        {/* Additional Details */}
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Highlights & Details</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Hotel Highlights</Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.hotel_highlights}
+              onChangeText={(text) => setFormData({ ...formData, hotel_highlights: text })}
+              placeholder="e.g. Great view, Clean rooms"
+              placeholderTextColor={colors.textMuted}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Walkability</Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.walkability}
+              onChangeText={(text) => setFormData({ ...formData, walkability: text })}
+              placeholder="e.g. Near to city center"
+              placeholderTextColor={colors.textMuted}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Food & Drinks</Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={formData.food_and_drinks}
+              onChangeText={(text) => setFormData({ ...formData, food_and_drinks: text })}
+              placeholder="e.g. Excellent breakfast"
+              placeholderTextColor={colors.textMuted}
+            />
+          </View>
+        </View>
+
+        {/* Status */}
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Status</Text>
+          <View style={[styles.pickerContainer, { borderColor: colors.border, backgroundColor: colors.background }]}>
+            <Picker
+              selectedValue={formData.status}
+              onValueChange={(itemValue) => setFormData({ ...formData, status: itemValue })}
+              style={{ color: colors.text }}
+              dropdownIconColor={colors.text}
+            >
+              <Picker.Item label="Active" value="Active" />
+              <Picker.Item label="Inactive" value="Inactive" />
+            </Picker>
+          </View>
+        </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' }, // White bg as per mockup modal look, but screen is fine
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    margin: 40,
-    backgroundColor: '#fff',
+    alignItems: 'center',
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   backButton: { padding: 8 },
-  title: { fontSize: 20, fontWeight: 'bold', color: '#111827' },
-  form: { padding: 24 },
-  inputGroup: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6 },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 6,
-    padding: 12,
-    fontSize: 14,
-    color: '#111827',
-  },
-  row: { flexDirection: 'row' },
-  pickerContainer: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  textArea: { minHeight: 100, textAlignVertical: 'top' },
-  
-  fileInputRow: {
+  title: { fontSize: 18, fontWeight: 'bold' },
+  saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 6,
-    padding: 6,
-  },
-  chooseFileButton: {
-    backgroundColor: '#f3f4f6',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
   },
-  chooseFileText: {
-    color: '#111827',
-    fontSize: 14,
+  saveText: { color: '#fff', fontWeight: '600' },
+  form: { padding: 16 },
+  imageSection: {
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  fileNameText: {
-    color: '#6b7280',
-    fontSize: 14,
-  },
-  imagePreviewContainer: {
-    marginTop: 12,
+  imagePlaceholder: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    overflow: 'hidden',
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     position: 'relative',
-    backgroundColor: '#f3f4f6',
+    overflow: 'visible',
   },
-  previewImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: '#ef4444',
-    padding: 4,
-    borderRadius: 12,
-  },
-
-  footerButtons: {
-    marginTop: 12,
-  },
-  saveButton: {
-    paddingVertical: 14,
-    borderRadius: 6,
-    backgroundColor: '#db2777',
+  imagePlaceholderContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  saveText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  imagePlaceholderText: {
+    fontSize: 10,
+    marginTop: 4,
+  },
+  editIconBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  section: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  smallInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    fontSize: 16,
+    width: 80,
+    textAlign: 'center',
+  },
+  textArea: {
+    height: 100,
+  },
+  ratingInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
 });

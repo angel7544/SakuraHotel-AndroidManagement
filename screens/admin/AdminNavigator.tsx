@@ -41,6 +41,7 @@ import AdminOffersScreen from './AdminOffersScreen';
 import AdminTestimonialsScreen from './AdminTestimonialsScreen';
 import AppInfoPopup from '../../components/AppInfoPopup';
 import AdminBlogPostScreen from './AdminBlogPostScreen';
+import AdminTestimonialFormScreen from './AdminTestimonialFormScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -381,6 +382,14 @@ export default function AdminNavigator() {
         component={AdminTestimonialsScreen} 
         options={{
           drawerIcon: ({ color, size }) => <MessageSquare size={size} color={color} />
+        }}
+      />
+      <Drawer.Screen 
+        name="AdminTestimonialForm" 
+        component={AdminTestimonialFormScreen} 
+        options={{
+          drawerItemStyle: { display: 'none' },
+          title: 'Testimonial Form'
         }}
       />
       <Drawer.Screen 

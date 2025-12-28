@@ -11,6 +11,12 @@ interface Testimonial {
   role: string | null;
   message: string;
   rating: number;
+  rooms_rating?: number;
+  service_rating?: number;
+  location_rating?: number;
+  hotel_highlights?: string;
+  walkability?: string;
+  food_and_drinks?: string;
   image_url: string | null;
   status: string;
   created_at: string;
@@ -27,6 +33,12 @@ export default function TestimonialsPage() {
     role: "",
     message: "",
     rating: 5,
+    rooms_rating: 5.0,
+    service_rating: 5.0,
+    location_rating: 5.0,
+    hotel_highlights: "",
+    walkability: "",
+    food_and_drinks: "",
     status: "Active",
     image_url: ""
   });
@@ -76,6 +88,12 @@ export default function TestimonialsPage() {
         role: testimonial.role || "",
         message: testimonial.message,
         rating: testimonial.rating,
+        rooms_rating: testimonial.rooms_rating || 5.0,
+        service_rating: testimonial.service_rating || 5.0,
+        location_rating: testimonial.location_rating || 5.0,
+        hotel_highlights: testimonial.hotel_highlights || "",
+        walkability: testimonial.walkability || "",
+        food_and_drinks: testimonial.food_and_drinks || "",
         status: testimonial.status,
         image_url: testimonial.image_url || ""
       });
@@ -86,6 +104,12 @@ export default function TestimonialsPage() {
         role: "",
         message: "",
         rating: 5,
+        rooms_rating: 5.0,
+        service_rating: 5.0,
+        location_rating: 5.0,
+        hotel_highlights: "",
+        walkability: "",
+        food_and_drinks: "",
         status: "Active",
         image_url: ""
       });
@@ -124,6 +148,12 @@ export default function TestimonialsPage() {
         role: formData.role,
         message: formData.message,
         rating: formData.rating,
+        rooms_rating: formData.rooms_rating,
+        service_rating: formData.service_rating,
+        location_rating: formData.location_rating,
+        hotel_highlights: formData.hotel_highlights,
+        walkability: formData.walkability,
+        food_and_drinks: formData.food_and_drinks,
         status: formData.status,
         image_url: imageUrl
       };
@@ -236,6 +266,14 @@ export default function TestimonialsPage() {
                 ))}
               </div>
 
+              {(t.rooms_rating || t.service_rating || t.location_rating) && (
+                <div className="flex flex-wrap gap-2 mb-3 text-xs text-gray-500">
+                  {t.rooms_rating && <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Rooms: {t.rooms_rating}</span>}
+                  {t.service_rating && <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">Service: {t.service_rating}</span>}
+                  {t.location_rating && <span className="bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded">Loc: {t.location_rating}</span>}
+                </div>
+              )}
+
               <p className="text-gray-600 text-sm line-clamp-4 relative pl-4">
                 <Quote size={12} className="absolute top-0 left-0 text-pink-300 transform -scale-x-100" />
                 {t.message}
@@ -299,6 +337,78 @@ export default function TestimonialsPage() {
                   className="w-full rounded-lg border-gray-300 focus:ring-pink-500 focus:border-pink-500"
                   placeholder="Share the experience..."
                 />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Rooms (0-5)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={formData.rooms_rating}
+                    onChange={(e) => setFormData({...formData, rooms_rating: Number(e.target.value)})}
+                    className="w-full rounded-lg border-gray-300 focus:ring-pink-500 focus:border-pink-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Service (0-5)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={formData.service_rating}
+                    onChange={(e) => setFormData({...formData, service_rating: Number(e.target.value)})}
+                    className="w-full rounded-lg border-gray-300 focus:ring-pink-500 focus:border-pink-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location (0-5)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={formData.location_rating}
+                    onChange={(e) => setFormData({...formData, location_rating: Number(e.target.value)})}
+                    className="w-full rounded-lg border-gray-300 focus:ring-pink-500 focus:border-pink-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Highlights</label>
+                    <input
+                      type="text"
+                      value={formData.hotel_highlights}
+                      onChange={(e) => setFormData({...formData, hotel_highlights: e.target.value})}
+                      className="w-full rounded-lg border-gray-300 focus:ring-pink-500 focus:border-pink-500"
+                      placeholder="e.g. Quiet, Great View, Luxury"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Walkability</label>
+                    <input
+                      type="text"
+                      value={formData.walkability}
+                      onChange={(e) => setFormData({...formData, walkability: e.target.value})}
+                      className="w-full rounded-lg border-gray-300 focus:ring-pink-500 focus:border-pink-500"
+                      placeholder="e.g. Near Gandhi Marg"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Food and Drinks</label>
+                    <textarea
+                      rows={2}
+                      value={formData.food_and_drinks}
+                      onChange={(e) => setFormData({...formData, food_and_drinks: e.target.value})}
+                      className="w-full rounded-lg border-gray-300 focus:ring-pink-500 focus:border-pink-500"
+                      placeholder="e.g. Tea is good, fresh milk available..."
+                    />
+                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
