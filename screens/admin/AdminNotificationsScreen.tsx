@@ -13,6 +13,25 @@ export default function AdminNotificationsScreen({ navigation }: any) {
   const [body, setBody] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deviceCount, setDeviceCount] = useState<number | null>(null);
+  const [sendViaFCM, setSendViaFCM] = useState(false); // New state for toggling FCM
+
+  React.useEffect(() => {
+    fetchDeviceCount();
+  }, []);
+
+  const fetchDeviceCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('push_tokens')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      setDeviceCount(count);
+    } catch (error) {
+      console.error('Error fetching device count:', error);
+    }
+  };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -55,7 +74,7 @@ export default function AdminNotificationsScreen({ navigation }: any) {
       }
 
       if (!tokens || tokens.length === 0) {
-        Alert.alert('Info', 'No registered devices found to send notification.');
+        Alert.alert('Info', 'No registered devices found to send notification. Please open the app on a physical device to register a token.');
         setLoading(false);
         return;
       }
@@ -160,6 +179,19 @@ export default function AdminNotificationsScreen({ navigation }: any) {
             </TouchableOpacity>
           )}
 
+          <TouchableOpacity 
+            style={[styles.checkboxContainer, { borderColor: colors.border }]} 
+            onPress={() => setSendViaFCM(!sendViaFCM)}
+          >
+             <View style={[styles.checkbox, sendViaFCM && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+                {sendViaFCM && <Send color="#fff" size={12} />}
+             </View>
+             <Text style={[styles.checkboxLabel, { color: colors.text }]}>
+               Send via Firebase (FCM) 
+               <Text style={{ fontSize: 10, color: colors.textMuted }}> (Experimental)</Text>
+             </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.button, { backgroundColor: colors.primary }]}
             onPress={sendNotifications}
@@ -177,6 +209,11 @@ export default function AdminNotificationsScreen({ navigation }: any) {
         </View>
         
         <View style={styles.infoContainer}>
+            <Text style={[styles.infoText, { color: colors.textMuted, marginBottom: 5 }]}>
+                {deviceCount !== null 
+                  ? `Currently ${deviceCount} device(s) registered.` 
+                  : 'Checking registered devices...'}
+            </Text>
             <Text style={[styles.infoText, { color: colors.textMuted }]}>
                 This will send a push notification to all devices that have installed the app and granted permission.
             </Text>
@@ -290,5 +327,28 @@ const styles = StyleSheet.create({
   infoText: {
       textAlign: 'center',
       fontSize: 12,
-  }
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderStyle: 'dashed',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });

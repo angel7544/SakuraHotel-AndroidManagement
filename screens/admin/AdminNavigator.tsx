@@ -21,9 +21,10 @@ import {
   Globe,
   Github,
   X,
-  InfoIcon,
   RefreshCw,
-  NewspaperIcon
+  NewspaperIcon,
+  Bell,
+  InfoIcon
 } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { signOut } from '../../lib/auth';
@@ -59,7 +60,7 @@ const MENU_ITEMS = [
   { name: 'Staff', icon: Users, label: 'Staff' },
   { name: 'Blog', icon: NewspaperIcon, label: 'Blogs' },
   {name: 'Main', icon: LayoutDashboard, label: 'HomeScreen'},
-  { name: 'Notifications', icon: InfoIcon, label: 'Notifications' },  
+  { name: 'Notifications', icon: Bell, label: 'Notifications' },  
   { name: 'AppInfo', icon: Info, label: 'App Info' },
 ];
 

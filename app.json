@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "com.br31tech.sakurahotel.app",
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
@@ -37,7 +38,14 @@
     },
     "owner": "angelsingh2199s-organization",
     "plugins": [
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff"
+        }
+      ]
     ],
     "updates": {
       "url": "https://u.expo.dev/415c3c32-6aee-42e3-9234-1da0c844cd00"
