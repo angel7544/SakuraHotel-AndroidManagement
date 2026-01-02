@@ -42,6 +42,7 @@ import AdminTestimonialsScreen from './AdminTestimonialsScreen';
 import AppInfoPopup from '../../components/AppInfoPopup';
 import AdminBlogPostScreen from './AdminBlogPostScreen';
 import AdminTestimonialFormScreen from './AdminTestimonialFormScreen';
+import AdminNotificationsScreen from './AdminNotificationsScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -58,6 +59,7 @@ const MENU_ITEMS = [
   { name: 'Staff', icon: Users, label: 'Staff' },
   { name: 'Blog', icon: NewspaperIcon, label: 'Blogs' },
   {name: 'Main', icon: LayoutDashboard, label: 'HomeScreen'},
+  { name: 'Notifications', icon: InfoIcon, label: 'Notifications' },  
   { name: 'AppInfo', icon: Info, label: 'App Info' },
 ];
 
@@ -422,6 +424,13 @@ export default function AdminNavigator() {
         component={AdminStaffScreen} 
         options={{
           drawerIcon: ({ color, size }) => <Users size={size} color={color} />
+        }}
+      />
+      <Drawer.Screen 
+        name="Notifications" 
+        component={AdminNotificationsScreen} 
+        options={{
+          drawerIcon: ({ color, size }) => <InfoIcon size={size} color={color} />
         }}
       />
       <Drawer.Screen 

@@ -44,6 +44,9 @@ import BlogArticleScreen from './screens/BlogArticleScreen';
 import { getUserRoles } from './lib/auth';
 import { supabase } from './lib/supabase';
 
+import { registerForPushNotificationsAsync } from './lib/notifications';
+import * as Notifications from 'expo-notifications';
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -168,6 +171,23 @@ const MyTheme = {
 };
 
 function AppContent() {
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      // console.log(notification);
+    });
+
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      // console.log(response);
+    });
+
+    return () => {
+      subscription.remove();
+      responseSubscription.remove();
+    };
+  }, []);
+
   return (
     <ImageBackground 
       source={require('./assets/backgroundlg.jpg')} 
