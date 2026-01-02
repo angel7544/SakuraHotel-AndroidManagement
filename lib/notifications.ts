@@ -54,11 +54,16 @@ export async function registerForPushNotificationsAsync() {
            // On Android, we can try to get the device push token
            // Note: This might throw if not properly configured with google-services.json
            // We wrap it in try/catch so it doesn't block the main Expo token
-           const deviceTokenData = await Notifications.getDevicePushTokenAsync();
-           fcmToken = deviceTokenData.data;
-           console.log("FCM Token:", fcmToken);
+           // Only attempt if we are in a build that supports it
+           if (Constants.appOwnership !== 'expo') {
+              const deviceTokenData = await Notifications.getDevicePushTokenAsync();
+              fcmToken = deviceTokenData.data;
+              console.log("FCM Token:", fcmToken);
+           }
         }
       } catch (fcmError) {
+        // Suppress the specific "Default FirebaseApp is not initialized" error from alerting the user
+        // as it just means they haven't set up Firebase yet, but Expo Push Token will still work.
         console.log("FCM Token skipped (not critical):", fcmError);
       }
   
