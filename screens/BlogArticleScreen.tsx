@@ -173,7 +173,7 @@ export default function BlogArticleScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: '#fff' }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar hidden />
       
       {/* Floating Header */}
       <View style={styles.floatingHeader}>

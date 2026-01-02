@@ -242,7 +242,7 @@ function AppContent() {
         </Stack.Navigator>
       </NavigationContainer>
       <OffersPopup />
-      <StatusBar style="auto" />
+      <StatusBar hidden />
       </SafeAreaProvider>
     </ImageBackground>
   );

@@ -21,6 +21,9 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
+      "statusBar": {
+        "hidden": true
+      },
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false
     },
