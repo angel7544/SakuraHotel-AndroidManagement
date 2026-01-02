@@ -209,8 +209,7 @@ export default function MoreScreen() {
                   <TouchableOpacity
                     style={[styles.actionButton, styles.dashboardButton]}
                     onPress={() => {
-                      closeSheet();
-                      navigation.navigate('AdminDashboard');
+                      closeSheet(() => navigation.navigate('AdminDashboard'));
                     }}
                   >
                     <LayoutDashboard size={14} color="#fff" />

@@ -136,17 +136,17 @@ export default function AdminSettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.topActions, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
+      {/* <View style={[styles.topActions, { backgroundColor: colors.card, borderBottomColor: colors.border }]}> */}
+        {/* <Text style={[styles.title, { color: colors.text }]}>Settings</Text> */}
+        {/* <View style={{ flexDirection: 'row', gap: 10 }}>
           <TouchableOpacity style={styles.logoutButton} onPress={toggleTheme}>
             {theme === 'dark' ? <Sun size={20} color={colors.warning} /> : <Moon size={20} color={colors.text} />}
           </TouchableOpacity>
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <LogOut size={20} color="#ef4444" />
           </TouchableOpacity>
-        </View>
-      </View>
+        </View> */}
+      {/* </View> */}
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.inputGroup}>

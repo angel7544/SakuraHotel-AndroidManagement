@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Linking, Switch, Alert, Pressable, Modal, DeviceEventEmitter } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Linking, Switch, Alert, Pressable, Modal, DeviceEventEmitter, GestureResponderEvent } from 'react-native';
 import { 
   MessageCircle, 
   User as UserIcon, 
@@ -127,6 +127,10 @@ function CustomDrawerContent(props: any) {
     props.navigation.navigate('AdminSettings');
   };
 
+  function navigateToAppInfo(event: GestureResponderEvent): void {
+    setShowAppInfo(true);
+  }
+
   return (
     <View style={{ flex: 1, flexDirection: 'column', backgroundColor: colors.background }}>
       <DrawerContentScrollView {...props} showsVerticalScrollIndicator={false}>
@@ -201,13 +205,13 @@ function CustomDrawerContent(props: any) {
       <View style={[styles.drawerFooter, { borderTopColor: colors.border, backgroundColor: colors.card }]}>
         <View style={styles.footerGrid}>
           {isManager && (
-            <TouchableOpacity style={styles.gridButton} onPress={navigateToSettings}>
-              <Settings size={20} color={colors.textSecondary} />
-              <Text style={[styles.gridButtonText, { color: colors.textSecondary }]}>Settings</Text>
+            <TouchableOpacity style={styles.gridButton} onPress={navigateToAppInfo}>
+              <Info size={20} color={colors.textSecondary} />
+              <Text style={[styles.gridButtonText, { color: colors.textSecondary }]}>App Info</Text>
             </TouchableOpacity>
           )}
           
-          <TouchableOpacity style={styles.gridButton} onPress={toggleTheme}>
+          {/* <TouchableOpacity style={styles.gridButton} onPress={toggleTheme}>
             {theme === 'dark' ? (
               <Sun size={24} color={colors.warning} />
             ) : (
@@ -216,7 +220,7 @@ function CustomDrawerContent(props: any) {
             <Text style={[styles.gridButtonText, { color: colors.textSecondary }]}>
               {theme === 'dark' ? 'Light' : 'Dark'}
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity style={styles.gridButton} onPress={handleLogout}>
             <LogOut size={20} color={colors.error} />

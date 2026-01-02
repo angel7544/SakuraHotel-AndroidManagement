@@ -35,6 +35,12 @@
     "owner": "angelsingh2199s-organization",
     "plugins": [
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "updates": {
+      "url": "https://u.expo.dev/415c3c32-6aee-42e3-9234-1da0c844cd00"
+    },
+    "runtimeVersion": "5.5.0"
   }
+
+
 }

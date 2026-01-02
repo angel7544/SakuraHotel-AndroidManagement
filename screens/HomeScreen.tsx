@@ -173,11 +173,11 @@ const RoomCard = memo(({ item }: { item: any }) => {
                   <Text style={styles.roomPrice}>₹{item.price} /night</Text>
                   
               </View>
-              <View style={{ flexDirection: 'column' }}>
+              {/* <View style={{ flexDirection: 'column' }}>
                   <TouchableOpacity style={styles.inquireButton}>
                       <Text style={styles.inquireButtonText}>Inquire Now</Text>
                   </TouchableOpacity>
-              </View>
+              </View> */}
           </View>
       </View>
       </LinearGradient>
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
   },
   highlightText: {
-    color: '#f472b6', // pink-400
+    color: '#dd720eff', // pink-400
   },
   heroSubtitle: {
     fontSize: 14,

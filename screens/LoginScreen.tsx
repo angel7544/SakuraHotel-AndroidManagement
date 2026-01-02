@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, Image, Linking, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, Image, Linking, ImageBackground, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { getUserRoles, signOut } from '../lib/auth';
-import { Lock, Mail, User, LogOut, LayoutDashboard } from 'lucide-react-native';
+import { Lock, Mail, User, LogOut, LayoutDashboard, Home } from 'lucide-react-native';
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -146,63 +146,80 @@ export default function LoginScreen() {
       style={styles.container}
       resizeMode="cover"
     >
-      <View style={styles.headerContainer}>
-          <Image source={require('../assets/logo.png')} style={styles.headerLogo} resizeMode="contain" />
-          <Text style={styles.headerText}>Hotel Sakura Management</Text>
-          <Text style={styles.versionText}>Version 5.0.0</Text>
-      </View>
-      <View style={styles.loginCard}>
-        {/* <Text style={styles.title}>Welcome Back</Text> */}
-        <Text style={styles.subtitle}>Sign in to your account</Text>
-
-        <View style={styles.inputGroup}>
-          <View style={styles.iconWrapper}>
-            <Mail size={20} color="#9ca3af" />
-          </View>
-          <TextInput
-            style={styles.input}
-            placeholder="Email Address"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholderTextColor="#9ca3af"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <View style={styles.iconWrapper}>
-            <Lock size={20} color="#9ca3af" />
-          </View>
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholderTextColor="#9ca3af"
-          />
-        </View>
-
-        <TouchableOpacity 
-          style={styles.loginButton}
-          onPress={handleLogin}
-          disabled={loading}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.loginButtonText}>Sign In</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.footerContainer}>
-        <TouchableOpacity onPress={() => Linking.openURL('https://br31tech.live')}>
-           <Image source={require('../assets/br31logo.png')} style={styles.logo} resizeMode="contain" />
-        </TouchableOpacity>
-        <Text style={styles.footerText}>Made with Love @br31tech.live</Text>
-      </View>
+          <View style={styles.headerContainer}>
+              <Image source={require('../assets/logo.png')} style={styles.headerLogo} resizeMode="contain" />
+              <Text style={styles.headerText}>Hotel Sakura Management</Text>
+              <Text style={styles.versionText}>Version 5.0.0</Text>
+          </View>
+
+          <TouchableOpacity style={styles.homeButton} onPress={() => navigation.navigate('Main')}>
+             <Home size={18} color="#fff" style={{ marginRight: 8 }} />
+             <Text style={styles.homeButtonText}>Go to Home</Text>
+          </TouchableOpacity>
+
+          <View style={styles.loginCard}>
+            {/* <Text style={styles.title}>Welcome Back</Text> */}
+            <Text style={styles.subtitle}>Sign in to your account</Text>
+
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrapper}>
+                <Mail size={20} color="#9ca3af" />
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Email Address"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrapper}>
+                <Lock size={20} color="#9ca3af" />
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+
+            <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.loginButtonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.footerContainer}>
+            <TouchableOpacity onPress={() => Linking.openURL('https://br31tech.live')}>
+               <Image source={require('../assets/br31logo.png')} style={styles.logo} resizeMode="contain" />
+            </TouchableOpacity>
+            <Text style={styles.footerText}>Made with Love @br31tech.live</Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 }
@@ -210,17 +227,17 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: '#f9fafb',
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
   },
   headerContainer: {
-    position: 'absolute',
-    top: 50,
-    left: 0,
-    right: 0,
     alignItems: 'center',
     paddingHorizontal: 20,
+    marginBottom: 20,
+    marginTop: 20,
   },
   headerText: {
     fontSize: 24,
@@ -237,6 +254,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginTop: 5,
+    fontWeight: '600',
+  },
+  homeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#db2777',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginBottom: 20,
+    alignSelf: 'center',
+  },
+  homeButtonText: {
+    color: '#fff',
     fontWeight: '600',
   },
   loginCard: {
@@ -361,11 +393,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   footerContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
     alignItems: 'center',
+    marginTop: 30,
+    marginBottom: 20,
   },
   logo: {
     width: 120,
