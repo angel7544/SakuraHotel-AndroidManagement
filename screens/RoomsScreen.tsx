@@ -25,6 +25,7 @@ export type RoomItem = {
 };
 
 const RoomCard = ({ item, handleBookNow }: { item: RoomItem, handleBookNow: (item: RoomItem) => void }) => {
+  const navigation = useNavigation<any>();
   const [activeIndex, setActiveIndex] = useState(0);
   const images = item.images && item.images.length > 0 ? item.images : (item.image_url ? [item.image_url] : []);
   const hasMultipleImages = images.length > 1;
@@ -120,147 +121,13 @@ const RoomCard = ({ item, handleBookNow }: { item: RoomItem, handleBookNow: (ite
           )}
         </View>
 
-        <TouchableOpacity 
-          style={[
-            styles.bookButton, 
-            item.status === 'Booked' && styles.disabledButton
-          ]}
-          onPress={() => item.status !== 'Booked' && handleBookNow(item)}
-          disabled={item.status === 'Booked'}
-        >
-          <Text style={styles.bookButtonText}>
-            {item.status === 'Booked' ? 'Unavailable' : 'Book Now'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
-
-export default function RoomsScreen() {
-  const [rooms, setRooms] = useState<RoomItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const navigation = useNavigation<any>();
-  const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    fetchRooms();
-    
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel('realtime-rooms')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, fetchRooms)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, fetchRooms)
-      .subscribe();
-
-    const interval = setInterval(() => {
-      fetchRooms();
-    }, 5000);
-
-    return () => {
-      supabase.removeChannel(channel);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const fetchRooms = async () => {
-    try {
-      const { data: roomsData, error } = await supabase.from('rooms').select('*');
-      if (error) throw error;
-
-      // Check availability
-      const { data: resData } = await supabase
-        .from('reservations')
-        .select('room_id')
-        .in('status', ['Confirmed', 'Checked In']);
-
-      const bookedRoomIds = new Set(resData?.map(r => r.room_id).filter(Boolean));
-
-      const updatedRooms = (roomsData || []).map((room: any) => ({
-        ...room,
-        status: bookedRoomIds.has(room.id) ? 'Booked' : room.status
-      }));
-
-      setRooms(updatedRooms);
-    } catch (error) {
-      console.error('Error fetching rooms:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchRooms();
-    setRefreshing(false);
-  };
-
-  const handleBookNow = (room: RoomItem) => {
-    // Navigate to Contact with pre-filled interest
-    navigation.navigate('Contact', {
-      interest: `${room.type} (Room ${room.room_number})`,
-      type: 'room',
-      details: `Room: ${room.type} #${room.room_number}\nPrice: ${room.price ? `₹${room.price}` : 'On Request'}\nDescription: ${room.description || 'N/A'}\nCapacity: ${room.capacity} Guests\nBed: ${room.bed_count} ${room.bed_type}\nAmenities: ${room.amenities?.join(', ') || 'N/A'}`
-    });
-  };
-
-  const getAmenityIcon = (amenity: string) => {
-    const lower = amenity.toLowerCase();
-    if (lower.includes("wifi")) return <Wifi size={16} color="#6b7280" />;
-    if (lower.includes("tv")) return <Tv size={16} color="#6b7280" />;
-    if (lower.includes("ac") || lower.includes("air")) return <Wind size={16} color="#6b7280" />;
-    if (lower.includes("park")) return <Car size={16} color="#6b7280" />;
-    if (lower.includes("pool")) return <Waves size={16} color="#6b7280" />;
-    if (lower.includes("gym") || lower.includes("fitness")) return <Dumbbell size={16} color="#6b7280" />;
-    if (lower.includes("breakfast") || lower.includes("coffee")) return <Coffee size={16} color="#6b7280" />;
-    if (lower.includes("dining") || lower.includes("food")) return <Utensils size={16} color="#6b7280" />;
-    if (lower.includes("heat") || lower.includes("fire")) return <Flame size={16} color="#6b7280" />;
-    return <Star size={16} color="#6b7280" />;
-  };
-
-  const renderRoom = ({ item }: { item: RoomItem }) => {
-    const images = item.images && item.images.length > 0 ? item.images : (item.image_url ? [item.image_url] : []);
-    const mainImage = images[0] || 'https://via.placeholder.com/400x300?text=No+Image';
-
-    return (
-      <View style={styles.card}>
-        <Image source={{ uri: mainImage }} style={styles.cardImage} />
-        <View style={styles.cardContent}>
-          <View style={styles.cardHeader}>
-            <View>
-              <Text style={styles.roomType}>{item.type}</Text>
-              <Text style={styles.roomNumber}>Room {item.room_number}</Text>
-            </View>
-            <View style={styles.priceTag}>
-              <Text style={styles.priceText}>
-                {item.price ? `₹${item.price}` : 'On Request'}
-              </Text>
-              {item.price ? <Text style={styles.perNight}>/night</Text> : null}
-            </View>
-          </View>
-
-          <View style={styles.features}>
-            <View style={styles.featureItem}>
-              <Users size={16} color="#6b7280" />
-              <Text style={styles.featureText}>{item.capacity} Guests</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <Bed size={16} color="#6b7280" />
-              <Text style={styles.featureText}>{item.bed_count} {item.bed_type}</Text>
-            </View>
-          </View>
-
-          <View style={styles.amenities}>
-            {item.amenities?.slice(0, 5).map((amenity, idx) => (
-              <View key={idx} style={styles.amenityItem}>
-                {getAmenityIcon(amenity)}
-                <Text style={styles.amenityText}>{amenity}</Text>
-              </View>
-            ))}
-            {item.amenities && item.amenities.length > 5 && (
-              <Text style={styles.moreAmenities}>+{item.amenities.length - 5} more</Text>
-            )}
-          </View>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={styles.viewDetailsButton}
+            onPress={() => navigation.navigate('RoomDetails', { room: item })}
+          >
+            <Text style={styles.viewDetailsText}>View Details</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity 
             style={[
@@ -276,34 +143,117 @@ export default function RoomsScreen() {
           </TouchableOpacity>
         </View>
       </View>
-    );
+    </View>
+  );
+};
+
+export default function RoomsScreen() {
+  const [rooms, setRooms] = useState<RoomItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigation = useNavigation<any>();
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchRooms();
+    
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('realtime-rooms')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, fetchRooms)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, fetchRooms)
+      .subscribe();
+
+    // const interval = setInterval(() => {
+    //   fetchRooms();
+    // }, 10000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      // clearInterval(interval);
+    };
+  }, []);
+
+  const fetchRooms = async () => {
+    try {
+      setError(null);
+      const { data: roomsData, error } = await supabase.from('rooms').select('*');
+      if (error) throw error;
+
+      // Check availability
+      const { data: resData, error: resError } = await supabase
+        .from('reservations')
+        .select('room_id')
+        .in('status', ['Confirmed', 'Checked In']);
+      
+      if (resError) console.warn('Error fetching reservations:', resError);
+
+      const bookedRoomIds = new Set(resData?.map(r => r.room_id).filter(Boolean));
+
+      const updatedRooms = (roomsData || []).map((room: any) => ({
+        ...room,
+        status: bookedRoomIds.has(room.id) ? 'Booked' : room.status
+      }));
+
+      setRooms(updatedRooms);
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      setError('Failed to load rooms');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading) {
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchRooms();
+    setRefreshing(false);
+  };
+
+  const handleBookNow = (room: RoomItem) => {
+    // Navigate to Contact with pre-filled interest
+    navigation.navigate('Contact', {
+      interest: `Room Booking: ${room.type} (Room ${room.room_number})`,
+      type: 'room',
+      details: `Room: ${room.type} #${room.room_number}\nPrice: ₹${room.price}\nDescription: ${room.description}`
+    });
+  };
+
+  if (loading && rooms.length === 0) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#db2777" />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <Header title="Our Rooms" />
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#db2777" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error && rooms.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header title="Our Rooms" />
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={() => { setLoading(true); fetchRooms(); }} style={styles.retryButton}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header />
-      <View style={styles.header}>
-        <Text style={styles.title}>Our Suites & Rooms</Text>
-        <Text style={styles.subtitle}>Comfort & Luxury defined.</Text>
-      </View>
+      <Header title="Our Rooms" />
       <FlatList
         data={rooms}
-        renderItem={renderRoom}
+        renderItem={({ item }) => <RoomCard item={item} handleBookNow={handleBookNow} />}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No rooms available at the moment.</Text>
         }
       />
     </SafeAreaView>
@@ -313,7 +263,27 @@ export default function RoomsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f3f4f6',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#ef4444',
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  retryButton: {
+    backgroundColor: '#db2777',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   header: {
     paddingHorizontal: 16,
@@ -423,7 +393,27 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     alignSelf: 'center',
   },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  viewDetailsButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#db2777',
+    backgroundColor: '#fff',
+  },
+  viewDetailsText: {
+    color: '#db2777',
+    fontWeight: '600',
+    fontSize: 16,
+  },
   bookButton: {
+    flex: 1,
     backgroundColor: '#db2777',
     paddingVertical: 12,
     borderRadius: 8,

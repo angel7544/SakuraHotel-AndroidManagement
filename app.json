@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hotel Sakura",
     "slug": "sakurahotel",
-    "version": "5.4.0",
+    "version": "6.1.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -24,9 +24,10 @@
         "backgroundColor": "#ffffff"
       },
       "statusBar": {
-        "hidden": true
+        "hidden": false
       },
       "edgeToEdgeEnabled": false,
+      "versionCode": 4,
       "predictiveBackGestureEnabled": false
     },
     "web": {

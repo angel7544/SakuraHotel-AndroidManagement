@@ -30,7 +30,7 @@ import {
 } from 'lucide-react-native';
 
 const { height } = Dimensions.get('window');
-const SHEET_HEIGHT = height * 0.55; // 55% of screen height
+const SHEET_HEIGHT = height * 0.40; // 30% of screen height
 
 export default function MoreScreen() {
   const navigation = useNavigation<any>();
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  safe: { flex: 1 },
+  safe: { width: '100%' },
   dragIndicator: {
     width: 40,
     height: 4,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#f3f4f6',
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 16,
-    paddingTop: 8,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
     marginBottom: 4,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
     padding: 2,
     borderRadius: 999,
   },
-  footer: { alignItems: 'center', opacity: 0.6 },
+  footer: { alignItems: 'center', opacity: 0.6, marginBottom: 4 },
   footerText: {
     fontSize: 10,
     color: '#6b7280',

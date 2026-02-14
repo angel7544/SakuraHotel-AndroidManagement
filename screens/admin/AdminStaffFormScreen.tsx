@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
   View, 
   Text, 
   StyleSheet, 
@@ -167,7 +168,7 @@ export default function AdminStaffFormScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#111827" />
@@ -299,9 +300,9 @@ export default function AdminStaffFormScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
@@ -310,8 +311,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    margin: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
   },
   backButton: { padding: 8 },
   title: { fontSize: 20, fontWeight: 'bold', color: '#111827' },

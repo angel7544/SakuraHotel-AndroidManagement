@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform, Alert } from 'react-native';
 import { supabase } from './supabase';
 import Constants from 'expo-constants';
+import { showToast } from '../components/ToastNotification';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -34,7 +35,11 @@ export async function registerForPushNotificationsAsync() {
       finalStatus = status;
     }
     if (finalStatus !== 'granted') {
-      Alert.alert('Error', 'Failed to get push token for push notification!');
+      showToast({
+        title: 'Permission Error',
+        message: 'Failed to get push token for push notification!',
+        type: 'error'
+      });
       return;
     }
     
@@ -81,7 +86,11 @@ export async function registerForPushNotificationsAsync() {
           console.error('Error saving push token:', error);
           // Only alert if it's a real error, not just a network blip
           if (error.code !== 'PGRST116') { // PGRST116 is "The result contains 0 rows" which shouldn't happen on upsert
-              Alert.alert('Registration Error', 'Could not save push token to database: ' + error.message);
+              showToast({
+                title: 'Registration Error',
+                message: 'Could not save push token to database: ' + error.message,
+                type: 'error'
+              });
           }
         } else {
           console.log('Push token saved successfully to Supabase');
@@ -89,7 +98,11 @@ export async function registerForPushNotificationsAsync() {
       }
     } catch (error: any) {
       console.error("Error getting push token:", error);
-      Alert.alert('Token Error', 'Failed to get push token: ' + error.message);
+      showToast({
+        title: 'No Internet',
+        message: 'Check your internet connection',
+        type: 'error'
+      });
     }
   } else {
     console.log('Must use physical device for Push Notifications');

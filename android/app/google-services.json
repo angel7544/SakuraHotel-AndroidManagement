@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "348451223614",
+    "project_id": "hotelsakura-5a0f9",
+    "storage_bucket": "hotelsakura-5a0f9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348451223614:android:2e36add3022f46d384396f",
+        "android_client_info": {
+          "package_name": "com.br31tech.sakurahotel.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY8cxai71lVzFP6WrAUD4KPyiz9f3ILyo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -26,6 +26,7 @@ export default function CatalogScreen() {
 
   const [items, setItems] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState(initialFilter);
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -44,18 +45,19 @@ export default function CatalogScreen() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, fetchServices)
       .subscribe();
 
-    const interval = setInterval(() => {
-      fetchServices();
-    }, 5000);
+    // const interval = setInterval(() => {
+    //   fetchServices();
+    // }, 5000);
 
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(interval);
+      // clearInterval(interval);
     };
   }, []);
 
   const fetchServices = async () => {
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('services')
         .select('*')
@@ -65,6 +67,7 @@ export default function CatalogScreen() {
       setItems(data || []);
     } catch (error) {
       console.error('Error fetching services:', error);
+      setError('Failed to load services');
     } finally {
       setLoading(false);
     }
@@ -113,9 +116,34 @@ export default function CatalogScreen() {
     );
   };
 
+  if (loading && items.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header title="Service Catalog" />
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#db2777" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error && items.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header title="Service Catalog" />
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={() => { setLoading(true); fetchServices(); }} style={styles.retryButton}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header />
+      <Header title="Service Catalog" />
       <View style={styles.header}>
         <Text style={styles.title}>Service Catalog</Text>
         <View style={styles.searchContainer}>
@@ -146,24 +174,18 @@ export default function CatalogScreen() {
         </ScrollView>
       </View>
 
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#db2777" />
-        </View>
-      ) : (
-        <FlatList
-          data={filteredItems}
-          renderItem={renderService}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={<Text style={styles.emptyText}>No services found.</Text>}
-          numColumns={2}
-          columnWrapperStyle={styles.columnWrapper}
-        />
-      )}
+      <FlatList
+        data={filteredItems}
+        renderItem={renderService}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={<Text style={styles.emptyText}>No services found.</Text>}
+        numColumns={2}
+        columnWrapperStyle={styles.columnWrapper}
+      />
     </SafeAreaView>
   );
 }
@@ -177,6 +199,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorText: {
+    color: '#ef4444',
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  retryButton: {
+    backgroundColor: '#db2777',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   header: {
     padding: 16,

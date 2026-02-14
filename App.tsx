@@ -31,6 +31,7 @@ import AdminReservationFormScreen from './screens/admin/AdminReservationFormScre
 import AdminStaffFormScreen from './screens/admin/AdminStaffFormScreen';
 
 import OffersPopup from './components/OffersPopup';
+import ToastNotification from './components/ToastNotification';
 import AdminOffersScreen from './screens/admin/AdminOffersScreen';
 import AdminTestimonialsScreen from './screens/admin/AdminTestimonialsScreen';
 import AdminOfferFormScreen from './screens/admin/AdminOfferFormScreen';
@@ -237,12 +238,13 @@ function AppContent() {
           <Stack.Screen name="AdminBlogPostForm" component={AdminBlogPostFormScreen} />
 
           <Stack.Screen name="Contact" component={ContactScreen} />
-          {/* Add other detail screens here if needed, e.g. RoomDetails */}
+          <Stack.Screen name="RoomDetails" component={RoomDetailsScreen} />
           <Stack.Screen name="BlogArticle" component={BlogArticleScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <OffersPopup />
-      <StatusBar hidden />
+      <ToastNotification />
+      <StatusBar style="dark" />
       </SafeAreaProvider>
     </ImageBackground>
   );
@@ -259,6 +261,7 @@ export default function App() {
 }
 
 import { StyleSheet } from 'react-native';
+import RoomDetailsScreen from './screens/RoomDetailsScreen';
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,

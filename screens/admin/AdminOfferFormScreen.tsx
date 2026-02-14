@@ -11,6 +11,7 @@ import {
   Image,
   Pressable
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/upload';
@@ -180,7 +181,7 @@ export default function AdminOfferFormScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#111827" />
@@ -319,7 +320,7 @@ export default function AdminOfferFormScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -330,7 +331,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    margin: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: '#fff',
   },
   backButton: { padding: 8 },

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Dimensions, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Dimensions, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Bed, Utensils, Car, Camera, PartyPopper, ArrowRight, Star, MapPin, Wifi, Tv, Wind, Heart } from 'lucide-react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import Testimonials from '../components/Testimonials';
 import LocationMap from '../components/LocationMap';
+import HomeRoomCard from '../components/HomeRoomCard';
 import Header from '../components/Header';
 import { supabase } from '../lib/supabase';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -52,7 +54,7 @@ const HomeHero = memo(() => {
   }, []);
 
   return (
-    <View style={styles.heroContainer}>
+    <Animated.View style={styles.heroContainer} entering={FadeInDown.duration(800)}>
       <FlatList
         ref={flatListRef}
         data={gangtokImages}
@@ -100,108 +102,35 @@ const HomeHero = memo(() => {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 });
 
-const RoomCard = memo(({ item }: { item: any }) => {
-  const navigation = useNavigation<any>();
-  const images = item.images && item.images.length > 0 ? item.images : (item.image_url ? [item.image_url] : []);
-  const mainImage = images[0] || 'https://via.placeholder.com/300x200?text=No+Image';
-
-  return (
-    <TouchableOpacity 
-      style={styles.roomCard}
-      onPress={() => navigation.navigate('Contact', {
-          interest: `${item.type} (Room ${item.room_number})`,
-          type: 'room',
-          details: `Room: ${item.type} #${item.room_number}\nPrice: ${item.price ? `₹${item.price}` : 'On Request'}\nDescription: ${item.description || 'N/A'}`
-      })}
-    >
-      <LinearGradient
-        colors={['#6e7176', '#1c263e']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.roomGradient}
-      >
-      <View style={styles.imageContainer}>
-          <Image source={{ uri: mainImage }} style={styles.roomImage} />
-          <View style={styles.roomRatingBadge}>
-              <Star size={10} color="#fbbf24" fill="#fbbf24" />
-              <Text style={styles.roomRatingText}>4.8/5</Text>
-          </View>
-          <View style={styles.roomHeartBadge}>
-              <Heart size={14} color="#fff" />
-          </View>
-      </View>
-      
-      <View style={styles.roomContent}>
-          <View>
-             <Text style={styles.roomTitle} numberOfLines={1}>Room :- {item.room_number}</Text>
-              <Text style={styles.roomTitle} numberOfLines={1}>{item.type}</Text>
-              {/* <Text style={styles.hotelName}>{item.hotels?.name || 'Hotel Sakura'}</Text> */}
-              <View style={styles.roomLocation}>
-                  <MapPin size={12} color="#9ca3af" />
-                  <Text style={styles.roomLocationText} numberOfLines={1}>MG Road, Gangtok, Sikkim</Text>
-              </View>
-              
-              <Text style={styles.roomDescription} numberOfLines={1}>{item.description || 'Luxury stay experience'}</Text>
-
-              {/* Amenities Row */}
-              <View style={styles.amenitiesRow}>
-                  {/* <View style={styles.amenityBadge}>
-                      <Wifi size={12} color="#9ca3af" />
-                      <Text style={styles.amenityText}>Wifi</Text>
-                  </View> */}
-                  <View style={styles.amenityBadge}>
-                      <Tv size={11} color="#9ca3af" />
-                      <Text style={styles.amenityText}>TV</Text>
-                  </View>
-                  <View style={styles.amenityBadge}>
-                      <Wind size={11} color="#9ca3af" />
-                      <Text style={styles.amenityText}>AC</Text>
-                  </View>
-                  <View style={styles.amenityBadge}>
-                      <Bed size={11} color="#9ca3af" />
-                      <Text style={styles.amenityText}>{item.bed_count || 1} Beds</Text>
-                  </View>
-              </View>
-          </View>
-
-          <View style={styles.roomFooter}>
-              <View style={{ flexDirection: 'column' }}>
-                  <Text style={styles.roomPrice}>₹{item.price} /night</Text>
-                  
-              </View>
-              {/* <View style={{ flexDirection: 'column' }}>
-                  <TouchableOpacity style={styles.inquireButton}>
-                      <Text style={styles.inquireButtonText}>Inquire Now</Text>
-                  </TouchableOpacity>
-              </View> */}
-          </View>
-      </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-});
+// RoomCard component removed in favor of HomeRoomCard
+// const RoomCard = memo(({ item }: { item: any }) => {
+//   ...
+// });
 
 const FeaturedStays = memo(({ rooms }: { rooms: any[] }) => {
   if (!rooms || rooms.length === 0) return null;
   return (
-    <View style={styles.sectionContainer}>
+    <Animated.View style={styles.sectionContainer} entering={FadeInDown.duration(800).delay(200)}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Featured Suites & Stays</Text>
         <Text style={styles.sectionSubtitle}>Swipe to explore our premium collection</Text>
       </View>
       <FlatList
         data={rooms}
-        renderItem={({ item }) => <RoomCard item={item} />}
+        renderItem={({ item }) => <HomeRoomCard item={item} />}
         keyExtractor={(item) => item.id.toString()}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.featuredList}
+        contentContainerStyle={[
+          styles.featuredList,
+          rooms.length === 1 && styles.centeredList
+        ]}
       />
-    </View>
+    </Animated.View>
   );
 });
 
@@ -212,26 +141,33 @@ const HomeFooter = memo(() => (
   </View>
 ));
 
-const ServiceCard = memo(({ item }: { item: any }) => {
+const ServiceCard = memo(({ item, index }: { item: any, index: number }) => {
   const navigation = useNavigation<any>();
   const Icon = item.icon;
   return (
-    <TouchableOpacity 
-      style={styles.serviceCard}
-      onPress={() => navigation.navigate(item.link, { filter: item.filter })}
+    <Animated.View 
+      entering={FadeInDown.duration(600).delay(index * 100 + 300)}
+      style={styles.serviceCardContainer}
     >
-      <View style={styles.iconContainer}>
-        <Icon size={24} color="#db2777" />
-      </View>
-      <Text style={styles.serviceTitle}>{item.title}</Text>
-      <Text style={styles.serviceDesc}>{item.desc}</Text>
-    </TouchableOpacity>
+      <TouchableOpacity 
+        style={styles.serviceCard}
+        onPress={() => navigation.navigate(item.link, { filter: item.filter })}
+      >
+        <View style={styles.iconContainer}>
+          <Icon size={24} color="#db2777" />
+        </View>
+        <Text style={styles.serviceTitle}>{item.title}</Text>
+        <Text style={styles.serviceDesc}>{item.desc}</Text>
+      </TouchableOpacity>
+    </Animated.View>
   );
 });
 
 export default function HomeScreen() {
   const [featuredRooms, setFeaturedRooms] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFeaturedRooms();
@@ -246,35 +182,60 @@ export default function HomeScreen() {
       })
       .subscribe();
 
-    const interval = setInterval(() => {
-      fetchFeaturedRooms();
-    }, 10000); // Increased to 10s to reduce load
+    // const interval = setInterval(() => {
+    //   fetchFeaturedRooms();
+    // }, 10000); // Increased to 10s to reduce load
 
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(interval);
+      // clearInterval(interval);
     };
   }, []);
 
   const fetchFeaturedRooms = async () => {
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('rooms')
         .select('*, hotels(name)')
         .limit(5); // Fetch top 5 rooms
       
-      if (!error && data) {
+      if (error) throw error;
+
+      if (data) {
         setFeaturedRooms(data);
       }
     } catch (err) {
       console.error('Error fetching featured rooms:', err);
+      setError('Failed to load rooms');
+    } finally {
+      setLoading(false);
     }
   };
 
   const renderListHeader = () => (
     <View>
       <HomeHero />
-      <FeaturedStays rooms={featuredRooms} />
+      {loading && featuredRooms.length === 0 ? (
+        <View style={{ padding: 40, alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#db2777" />
+        </View>
+      ) : error && featuredRooms.length === 0 ? (
+        <View style={{ padding: 20, alignItems: 'center' }}>
+           <Text style={{ color: '#ef4444', marginBottom: 10 }}>Unable to load featured stays</Text>
+           <TouchableOpacity 
+             onPress={() => {
+               setLoading(true);
+               fetchFeaturedRooms();
+             }}
+             style={[styles.button, styles.primaryButton, { minWidth: 100, paddingVertical: 8 }]}
+           >
+             <Text style={styles.primaryButtonText}>Retry</Text>
+           </TouchableOpacity>
+        </View>
+      ) : (
+        <FeaturedStays rooms={featuredRooms} />
+      )}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Our Premium Services</Text>
         <Text style={styles.sectionSubtitle}>Everything you need for a perfect stay.</Text>
@@ -303,7 +264,7 @@ export default function HomeScreen() {
             }}
           />
         }
-        renderItem={({ item }) => <ServiceCard item={item} />}
+        renderItem={({ item, index }) => <ServiceCard item={item} index={index} />}
       />
     </SafeAreaView>
   );
@@ -359,7 +320,7 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
   },
   highlightText: {
-    color: '#dd720eff', // pink-400
+    color: '#fbe604ff', // pink-400
   },
   heroSubtitle: {
     fontSize: 14,
@@ -424,12 +385,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
   },
-  serviceCard: {
+  serviceCardContainer: {
     width: (width - 48) / 2,
+    marginBottom: 16,
+  },
+  serviceCard: {
+    width: '100%',
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -455,6 +419,11 @@ const styles = StyleSheet.create({
   featuredList: {
     paddingHorizontal: 16,
     paddingRight: 8,
+  },
+  centeredList: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingRight: 16, // Match paddingHorizontal for visual centering
   },
   // Room Card Styles - Dark Theme
   roomCard: {

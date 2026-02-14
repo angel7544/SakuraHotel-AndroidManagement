@@ -158,7 +158,7 @@ export default function LoginScreen() {
           <View style={styles.headerContainer}>
               <Image source={require('../assets/logo.png')} style={styles.headerLogo} resizeMode="contain" />
               <Text style={styles.headerText}>Hotel Sakura Management</Text>
-              <Text style={styles.versionText}>Version 5.0.0</Text>
+              <Text style={styles.versionText}>Version 6.1.0</Text>
           </View>
 
           <TouchableOpacity style={styles.homeButton} onPress={() => navigation.navigate('Main')}>
@@ -167,7 +167,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <View style={styles.loginCard}>
-            {/* <Text style={styles.title}>Welcome Back</Text> */}
+            <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to your account</Text>
 
             <View style={styles.inputGroup}>
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loginCard: {
-    backgroundColor: '#ffffff07',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 24,
     padding: 32,
     shadowColor: '#000',

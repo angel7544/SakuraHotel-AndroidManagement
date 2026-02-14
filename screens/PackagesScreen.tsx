@@ -22,8 +22,9 @@ export type PackageItem = {
 export default function PackagesScreen() {
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation<any>();
-    const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function PackagesScreen() {
 
   const fetchPackages = async () => {
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('packages')
         .select('*')
@@ -51,6 +53,7 @@ export default function PackagesScreen() {
       setPackages(data || []);
     } catch (error) {
       console.error('Error fetching packages:', error);
+      setError('Failed to load packages');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -112,21 +115,34 @@ export default function PackagesScreen() {
     );
   };
 
-  if (loading) {
+  if (loading && packages.length === 0) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#db2777" />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <Header title="Our Packages" />
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#db2777" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error && packages.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header title="Our Packages" />
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={() => { setLoading(true); fetchPackages(); }} style={styles.retryButton}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header />
-      <View style={styles.header}>
-        <Text style={styles.title}>Our Packages</Text>
-        <Text style={styles.subtitle}>Curated experiences for you.</Text>
-      </View>
+      <Header title="Our Packages" />
       <FlatList
         data={packages}
         renderItem={renderPackage}
@@ -164,6 +180,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorText: {
+    color: '#ef4444',
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  retryButton: {
+    backgroundColor: '#db2777',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   listContent: {
     padding: 16,

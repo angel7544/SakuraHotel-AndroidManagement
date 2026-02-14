@@ -24,7 +24,7 @@ import {
 
 const { width } = Dimensions.get('window');
 const GRID_COLUMNS = 3;
-const GRID_H_PADDING = 12;
+const GRID_H_PADDING = 16;
 const GRID_GAP = 10;
 const gridItemWidth = Math.floor((width - GRID_H_PADDING * 2 - GRID_GAP * (GRID_COLUMNS - 1)) / GRID_COLUMNS);
 
@@ -144,34 +144,46 @@ export default function AdminDashboardScreen() {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#db2777']} />
       }
+      contentContainerStyle={{ paddingBottom: 24 }}
     >
-      <View style={styles.header}>
-        <View>
-            {/* <Text style={styles.headerTitle}>Admin Dashboard</Text> */}
-            <Text style={styles.headerTitle}>Overview & Quick Actions</Text>
-        </View>
+      <View style={styles.welcomeSection}>
+        <Text style={styles.welcomeTitle}>Welcome back, Admin</Text>
+        <Text style={styles.welcomeSubtitle}>Here's what's happening today</Text>
       </View>
 
       {/* Stats Cards */}
       <View style={styles.statsContainer}>
-        <View style={[styles.statCard, { backgroundColor: '#eff6ff' }]}>
-          <Calendar size={24} color="#3b82f6" style={styles.statIcon} />
-          <Text style={styles.statValue}>{stats.activeBookings}</Text>
-          <Text style={styles.statLabel}>Active Bookings</Text>
+        <View style={[styles.statCard, styles.statCardBlue]}>
+          <View style={styles.statIconContainer}>
+            <Calendar size={20} color="#3b82f6" />
+          </View>
+          <View>
+            <Text style={styles.statValue}>{stats.activeBookings}</Text>
+            <Text style={styles.statLabel}>Active Bookings</Text>
+          </View>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#f5f3ff' }]}>
-          <Bed size={24} color="#8b5cf6" style={styles.statIcon} />
-          <Text style={styles.statValue}>{stats.occupancy}%</Text>
-          <Text style={styles.statLabel}>Occupancy</Text>
+        <View style={[styles.statCard, styles.statCardPurple]}>
+          <View style={styles.statIconContainer}>
+            <Bed size={20} color="#8b5cf6" />
+          </View>
+          <View>
+            <Text style={styles.statValue}>{stats.occupancy}%</Text>
+            <Text style={styles.statLabel}>Occupancy</Text>
+          </View>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#fdf2f8' }]}>
-          <Users size={24} color="#ec4899" style={styles.statIcon} />
-          <Text style={styles.statValue}>{stats.newCustomers}</Text>
-          <Text style={styles.statLabel}>New Customers</Text>
+        <View style={[styles.statCard, styles.statCardPink]}>
+          <View style={styles.statIconContainer}>
+            <Users size={20} color="#ec4899" />
+          </View>
+          <View>
+            <Text style={styles.statValue}>{stats.newCustomers}</Text>
+            <Text style={styles.statLabel}>New Customers</Text>
+          </View>
         </View>
       </View>
 
       <View style={styles.menuContainer}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.menuGrid}>
           {filteredMenu.map((item, index) => {
             const Icon = item.icon;
@@ -180,11 +192,12 @@ export default function AdminDashboardScreen() {
                 key={index}
                 style={[styles.menuItem, { width: gridItemWidth }]}
                 onPress={() => navigation.navigate(item.screen)}
+                activeOpacity={0.7}
               >
-                <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
-                  <Icon size={28} color={item.color} />
+                <View style={[styles.iconContainer, { backgroundColor: item.color + '15' }]}>
+                  <Icon size={24} color={item.color} />
                 </View>
-                <Text style={styles.menuText}>{item.name}</Text>
+                <Text style={styles.menuText} numberOfLines={1}>{item.name}</Text>
               </TouchableOpacity>
             );
           })}
@@ -193,13 +206,29 @@ export default function AdminDashboardScreen() {
 
       {/* Recent Bookings */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Bookings</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recent Bookings</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Enquiries')}>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.bookingsList}>
           {recentBookings.map((booking, index) => (
-            <View key={index} style={styles.bookingItem}>
-              <View>
-                <Text style={styles.bookingName}>{booking.customer_name}</Text>
-                <Text style={styles.bookingDate}>{new Date(booking.check_in).toLocaleDateString()}</Text>
+            <TouchableOpacity 
+              key={index} 
+              style={[styles.bookingItem, index === recentBookings.length - 1 && { borderBottomWidth: 0 }]}
+              onPress={() => navigation.navigate('Enquiries')} // Or specific detail screen
+            >
+              <View style={styles.bookingLeft}>
+                <View style={styles.bookingAvatar}>
+                  <Text style={styles.bookingAvatarText}>
+                    {booking.customer_name?.charAt(0).toUpperCase() || 'G'}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={styles.bookingName}>{booking.customer_name}</Text>
+                  <Text style={styles.bookingDate}>{new Date(booking.check_in).toLocaleDateString()}</Text>
+                </View>
               </View>
               <View style={styles.bookingRight}>
                 <Text style={styles.bookingAmount}>₹{booking.total_amount}</Text>
@@ -213,7 +242,7 @@ export default function AdminDashboardScreen() {
                   ]}>{booking.status}</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
           {recentBookings.length === 0 && (
              <Text style={styles.emptyText}>No recent bookings</Text>
@@ -229,26 +258,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9fafb',
   },
-  header: {
+  welcomeSection: {
     padding: 24,
+    paddingBottom: 16,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  headerTitle: {
-    fontSize: 28,
+  welcomeTitle: {
+    fontSize: 24,
     fontWeight: '800',
     color: '#111827',
-    justifyContent: 'center',
   },
-  headerSubtitle: {
-    fontSize: 16,
+  welcomeSubtitle: {
+    fontSize: 14,
     color: '#6b7280',
     marginTop: 4,
-    justifyContent: 'center',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -258,11 +281,20 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     padding: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    justifyContent: 'space-between',
+    minHeight: 100,
   },
-  statIcon: {
+  statCardBlue: { borderTopWidth: 4, borderTopColor: '#3b82f6' },
+  statCardPurple: { borderTopWidth: 4, borderTopColor: '#8b5cf6' },
+  statCardPink: { borderTopWidth: 4, borderTopColor: '#ec4899' },
+  statIconContainer: {
     marginBottom: 8,
   },
   statValue: {
@@ -271,27 +303,24 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6b7280',
-    textAlign: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
   menuContainer: {
     paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   menuGrid: {
-    paddingHorizontal: 12,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
     justifyContent: 'flex-start',
   },
   menuItem: {
-    width: 96,
-    height: 96,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 8,
+    borderRadius: 16,
+    padding: 12,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -299,23 +328,31 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+    height: 100,
   },
   iconContainer: {
-    columnGap: 50,
-    width: 48,
-    height: 48,
-    borderRadius: 50,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 15,
+    marginBottom: 8,
   },
   menuText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#374151',
+    textAlign: 'center',
   },
   section: {
     padding: 16,
+    paddingTop: 8,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
@@ -323,18 +360,46 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 12,
   },
+  seeAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#db2777',
+  },
   bookingsList: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 16,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   bookingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
+  },
+  bookingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  bookingAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookingAvatarText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6b7280',
   },
   bookingName: {
     fontSize: 14,

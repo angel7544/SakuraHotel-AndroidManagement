@@ -39,12 +39,14 @@ export default function BlogScreen() {
   const { colors } = useTheme();
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<any>();
 
   const fetchBlogs = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const { data, error } = await supabase
         .from('blogs')
         .select('*')
@@ -59,6 +61,7 @@ export default function BlogScreen() {
       })) as BlogItem[]);
     } catch (error) {
       console.error('Error fetching blogs:', error);
+      setError('Failed to load blogs');
     } finally {
       setLoading(false);
     }
@@ -186,11 +189,28 @@ export default function BlogScreen() {
     );
   };
 
-  if (loading && !refreshing) {
+  if (loading && blogs.length === 0) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Header title="Our Stories" />
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error && blogs.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Header title="Our Stories" />
+        <View style={styles.center}>
+          <Text style={{ color: colors.error || '#ef4444', marginBottom: 16 }}>{error}</Text>
+          <TouchableOpacity onPress={() => fetchBlogs()} style={{ padding: 10, backgroundColor: colors.primary, borderRadius: 8 }}>
+            <Text style={{ color: '#fff' }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 

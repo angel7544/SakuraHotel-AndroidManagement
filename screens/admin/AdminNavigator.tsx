@@ -61,7 +61,7 @@ const MENU_ITEMS = [
   { name: 'Blog', icon: NewspaperIcon, label: 'Blogs' },
   {name: 'Main', icon: LayoutDashboard, label: 'HomeScreen'},
   { name: 'Notifications', icon: Bell, label: 'Notifications' },  
-  { name: 'AppInfo', icon: Info, label: 'App Info' },
+
 ];
 
 function CustomDrawerContent(props: any) {
@@ -320,9 +320,18 @@ export default function AdminNavigator() {
       initialRouteName="Dashboard"
       screenOptions={({ route }) => ({ 
         headerShown: true,
+        headerStyle: {
+          backgroundColor: '#ffffff',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 2,
+          elevation: 2,
+        },
         headerTintColor: '#111827',
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '700',
+          fontSize: 16,
         },
         drawerActiveTintColor: '#db2777',
         drawerInactiveTintColor: '#374151',
